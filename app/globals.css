@@ -63,3 +63,82 @@ body {
 .roadmap-container::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Landscape Background Styles */
+.landscape-container {
+  overflow: hidden;
+  will-change: transform;
+}
+
+.landscape-background {
+  transition: transform 0.3s ease-out;
+}
+
+.landscape-layer-far,
+.landscape-layer-mid,
+.landscape-layer-near,
+.landscape-layer-accent {
+  transition: transform 0.3s ease-out;
+  will-change: transform;
+}
+
+/* Add subtle animation to clouds */
+.landscape-details ellipse {
+  animation: float 20s ease-in-out infinite;
+}
+
+.landscape-details ellipse:nth-child(2) {
+  animation-delay: -5s;
+}
+
+.landscape-details ellipse:nth-child(3) {
+  animation-delay: -10s;
+}
+
+.landscape-details ellipse:nth-child(4) {
+  animation-delay: -15s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(10px) translateY(-5px);
+  }
+  50% {
+    transform: translateX(-5px) translateY(3px);
+  }
+  75% {
+    transform: translateX(5px) translateY(-3px);
+  }
+}
+
+/* Enhance roadmap path visibility */
+.roadmap-path {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Adjust z-index layers */
+.terrain-bg {
+  z-index: -3;
+}
+
+.landscape-container {
+  z-index: -2;
+}
+
+.pattern-bg {
+  z-index: -1;
+}
+
+/* Add subtle glow to milestones */
+.milestone-marker {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+/* Create depth with shadows on the road */
+.road-shadow {
+  filter: blur(8px);
+  opacity: 0.2;
+}

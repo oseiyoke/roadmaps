@@ -9,6 +9,7 @@ import { Tooltip } from './Tooltip';
 import { SideDrawer } from './SideDrawer';
 import { ProgressIndicator } from './ProgressIndicator';
 import { ZoomControls } from './ZoomControls';
+import { LandscapeBackground } from './LandscapeBackground';
 import { phaseData, roadmapCurvePoints } from '@/app/data/roadmapData';
 import { Milestone as MilestoneType, TaskDot } from '@/app/types/roadmap';
 
@@ -144,12 +145,29 @@ export const Roadmap: React.FC = () => {
       const scrollLeft = container.scrollLeft;
       const terrainBg = document.querySelector('.terrain-bg') as HTMLElement;
       const patternBg = document.querySelector('.pattern-bg') as HTMLElement;
+      const landscapeFar = document.querySelector('.landscape-layer-far') as HTMLElement;
+      const landscapeMid = document.querySelector('.landscape-layer-mid') as HTMLElement;
+      const landscapeNear = document.querySelector('.landscape-layer-near') as HTMLElement;
+      const landscapeAccent = document.querySelector('.landscape-layer-accent') as HTMLElement;
       
       if (terrainBg) {
         terrainBg.style.transform = `translateX(${-scrollLeft * 0.3}px)`;
       }
       if (patternBg) {
         patternBg.style.transform = `translateX(${-scrollLeft * 0.5}px)`;
+      }
+      // Landscape layers with different parallax speeds
+      if (landscapeFar) {
+        landscapeFar.style.transform = `translateX(${-scrollLeft * 0.2}px)`;
+      }
+      if (landscapeMid) {
+        landscapeMid.style.transform = `translateX(${-scrollLeft * 0.35}px)`;
+      }
+      if (landscapeNear) {
+        landscapeNear.style.transform = `translateX(${-scrollLeft * 0.45}px)`;
+      }
+      if (landscapeAccent) {
+        landscapeAccent.style.transform = `translateX(${-scrollLeft * 0.55}px)`;
       }
     };
 
@@ -175,6 +193,12 @@ export const Roadmap: React.FC = () => {
       <div className="terrain-bg fixed inset-0 opacity-10 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-400/30 via-green-400/20 to-yellow-400/10" />
       </div>
+      
+      {/* Landscape Background */}
+      <div className="landscape-container fixed inset-0 pointer-events-none">
+        <LandscapeBackground width={3800} height={700} />
+      </div>
+      
       <div className="pattern-bg fixed inset-0 opacity-[0.02] pointer-events-none">
         <div className="absolute inset-0" style={{
           backgroundImage: `
@@ -185,15 +209,15 @@ export const Roadmap: React.FC = () => {
       </div>
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 z-30 px-6 py-4">
-        <h1 className="text-2xl font-bold text-gray-900">Roadmap Journey</h1>
-        <p className="text-sm text-gray-500 mt-1">CTM Platform Development</p>
+      <header className="fixed top-0 left-0 right-0 z-30 px-6 py-4 text-center justify-center">
+        <h1 className="text-2xl font-bold text-gray-900">CTM Platform Development</h1>
+        {/* <p className="text-sm text-gray-500 mt-1">CTM Platform Development</p> */}
       </header>
 
       {/* Roadmap Container */}
       <div 
         ref={containerRef}
-        className="relative w-full h-screen overflow-x-auto overflow-y-hidden pt-20"
+        className="relative z-10 w-full h-screen overflow-x-auto overflow-y-hidden pt-20"
       >
         <div className="relative min-w-max h-full px-16 py-8">
           <svg 
@@ -245,7 +269,7 @@ export const Roadmap: React.FC = () => {
                   className="fill-white text-sm font-bold"
                   textAnchor="middle"
                 >
-                  Launch
+                  
                 </text>
               </g>
             )}
