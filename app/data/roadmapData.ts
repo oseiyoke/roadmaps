@@ -45,8 +45,8 @@ export const phaseData: Record<number, PhaseData> = {
     endDate: "August 4, 2025",
     critical: true,
     tasks: [
-      { name: "[CRITICAL PATH] Complete historical data migration from all sources", status: "completed" },
-      { name: "Build data reconciliation engine", status: "completed" },
+      { name: "[CRITICAL PATH] Complete historical data migration from all sources", status: "pending" },
+      { name: "Build data reconciliation engine", status: "pending" },
       { name: "Create unified customer profiles", status: "pending" },
       { name: "Implement automated daily data sync", status: "pending" },
       { name: "Set up data quality monitoring", status: "pending" },
@@ -81,7 +81,7 @@ export const phaseData: Record<number, PhaseData> = {
     endDate: "September 1, 2025",
     critical: true,
     tasks: [
-      { name: "Build real-time position dashboard", status: "in-progress" },
+      { name: "Build real-time position dashboard", status: "pending" },
       { name: "[CRITICAL PATH] Integrate with SMS for settlement visibility", status: "pending" },
       { name: "Create automated rate collection system", status: "pending" },
       { name: "Implement liquidity monitoring", status: "pending" },
@@ -217,5 +217,64 @@ export const phaseData: Record<number, PhaseData> = {
       "System monitoring tools"
     ],
     dependencies: ["SS, SMS, and LCS systems operational", "Stable API contracts with all modules"]
+  },
+  7: {
+    title: "Seamless Integration",
+    tagline: "Become the central nervous system",
+    startDate: "October 28, 2025",
+    endDate: "November 24, 2025",
+    critical: true,
+    tasks: [
+      { name: "Complete SS integration for support context", status: "pending" },
+      { name: "[CRITICAL PATH] Full bi-directional SMS integration", status: "pending" },
+      { name: "Enhanced LCS integration for real-time compliance", status: "pending" },
+      { name: "Build unified Seamless dashboard", status: "pending" },
+      { name: "Implement cross-module workflows", status: "pending" },
+      { name: "Create executive reporting suite", status: "pending" },
+      { name: "Performance optimisation", status: "pending" }
+    ],
+    painPoints: [
+      "Support team lacks customer context",
+      "Compliance reviews slow down trading",
+      "Settlement delays not communicated proactively",
+      "No unified view across all operations"
+    ],
+    outcomes: [
+      "Support sees full customer trading history",
+      "Compliance checks happen in real-time",
+      "All teams work from same information",
+      "Executives have complete operational visibility"
+    ],
+    requirements: [
+      "API gateway for all integrations",
+      "Enterprise message bus",
+      "Unified authentication system",
+      "Executive dashboard platform",
+      "System monitoring tools"
+    ],
+    dependencies: ["SS, SMS, and LCS systems operational", "Stable API contracts with all modules"]
   }
-}; 
+};
+
+// Control points for dynamic roadmap spline
+export const roadmapCurvePoints: { x: number; y: number }[] = [
+  { x: 50, y: 400 },      // Start more centered, no sharp edge
+  { x: 200, y: 380 },     // Gentle start curve
+  { x: 400, y: 300 },     // First gentle bend
+  { x: 600, y: 200 },     // Rise up
+  { x: 800, y: 150 },     // Peak of first hill
+  { x: 1000, y: 200 },    // Descend
+  { x: 1200, y: 350 },    // Valley
+  { x: 1400, y: 450 },    // Deep curve
+  { x: 1600, y: 500 },    // Lower point
+  { x: 1800, y: 450 },    // Rise again
+  { x: 2000, y: 300 },    // Another hill
+  { x: 2200, y: 250 },    // Gentle curve
+  { x: 2400, y: 300 },    // 
+  { x: 2600, y: 400 },    // S-curve start
+  { x: 2800, y: 500 },    // S-curve middle
+  { x: 3000, y: 450 },    // S-curve end
+  { x: 3200, y: 350 },    // Straighten out
+  { x: 3400, y: 300 },    // Final approach
+  { x: 3600, y: 350 },    // End position
+]; 

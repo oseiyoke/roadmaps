@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { RoadmapPath } from './RoadmapPath';
 import { Milestone } from './Milestone';
 import { TaskDots } from './TaskDots';
@@ -9,7 +9,7 @@ import { Tooltip } from './Tooltip';
 import { SideDrawer } from './SideDrawer';
 import { ProgressIndicator } from './ProgressIndicator';
 import { ZoomControls } from './ZoomControls';
-import { phaseData } from '@/app/data/roadmapData';
+import { phaseData, roadmapCurvePoints } from '@/app/data/roadmapData';
 import { Milestone as MilestoneType, TaskDot } from '@/app/types/roadmap';
 
 export const Roadmap: React.FC = () => {
@@ -23,55 +23,58 @@ export const Roadmap: React.FC = () => {
   const [zoom, setZoom] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const pathRef = useRef<SVGPathElement>(null);
+  const [milestonePositions, setMilestonePositions] = useState<MilestoneType[]>([]);
+  const [taskDotPositions, setTaskDotPositions] = useState<TaskDot[]>([]);
+  const [launchPosition, setLaunchPosition] = useState<{ x: number; y: number } | null>(null);
 
-  // Define milestones with positions along the curvy path
-  const milestones: MilestoneType[] = [
-    { id: 1, x: 100, y: 295, phase: 1, status: 'completed', critical: false },
-    { id: 2, x: 450, y: 150, phase: 2, status: 'completed', critical: true },
-    { id: 3, x: 750, y: 300, phase: 3, status: 'in-progress', critical: true },
-    { id: 4, x: 1100, y: 300, phase: 4, status: 'pending', critical: false },
-    { id: 5, x: 1400, y: 300, phase: 5, status: 'pending', critical: true },
-    { id: 6, x: 1750, y: 500, phase: 6, status: 'pending', critical: true },
-  ];
+  // Derive current position from the last in-progress task dot
+  const currentDot = useMemo(() => {
+    return taskDotPositions.filter(dot => dot.status === 'in-progress').pop() ?? null;
+  }, [taskDotPositions]);
 
-  // Define task dots along the path
-  const taskDots: TaskDot[] = [
-    // Phase 1 tasks
-    { x: 150, y: 275, status: 'completed' },
-    { x: 200, y: 240, status: 'completed' },
-    { x: 250, y: 210, status: 'completed' },
-    { x: 300, y: 180, status: 'completed' },
-    
-    // Phase 2 tasks
-    { x: 500, y: 160, status: 'in-progress' },
-    { x: 550, y: 180, status: 'pending' },
-    { x: 600, y: 210, status: 'pending' },
-    { x: 650, y: 240, status: 'pending' },
-    
-    // Phase 3 tasks
-    { x: 800, y: 310, status: 'pending' },
-    { x: 850, y: 305, status: 'pending' },
-    { x: 900, y: 302, status: 'pending' },
-    { x: 950, y: 300, status: 'pending' },
+  // Compute dynamic positions for milestones and task dots once the path is rendered
+  useEffect(() => {
+    const pathEl = pathRef.current;
+    if (!pathEl) return;
+    const totalLength = pathEl.getTotalLength();
+    const phases = Object.keys(phaseData)
+      .map(k => Number(k))
+      .sort((a, b) => a - b);
 
-    // Phase 4 tasks
-    { x: 1150, y: 298, status: 'pending' },
-    { x: 1200, y: 299, status: 'pending' },
-    { x: 1250, y: 300, status: 'pending' },
+    // Milestone positions
+    const milestonePos = phases.map((phase, i) => {
+      const t = phases.length > 1 ? i / (phases.length - 1) : 0;
+      const { x, y } = pathEl.getPointAtLength(totalLength * t);
+      const data = phaseData[phase];
+      const status: MilestoneType['status'] = data.tasks.every(task => task.status === 'completed')
+        ? 'completed'
+        : data.tasks.some(task => task.status === 'in-progress')
+        ? 'in-progress'
+        : 'pending';
+      return { id: phase, x, y, phase, status, critical: data.critical };
+    });
+    setMilestonePositions(milestonePos);
 
-    // Phase 5 tasks
-    { x: 1450, y: 320, status: 'pending' },
-    { x: 1500, y: 340, status: 'pending' },
-    { x: 1550, y: 370, status: 'pending' },
+    // Task dot positions
+    const dots: TaskDot[] = [];
+    phases.forEach((phase, pi) => {
+      const tasks = phaseData[phase].tasks;
+      const M = tasks.length;
+      const segmentStart = phases.length > 1 ? (pi / (phases.length - 1)) * totalLength : 0;
+      const segmentLen = phases.length > 1 ? totalLength / (phases.length - 1) : 0;
+      tasks.forEach((task, ki) => {
+        const frac = (ki + 1) / (M + 1);
+        const pos = pathEl.getPointAtLength(segmentStart + segmentLen * frac);
+        dots.push({ x: pos.x, y: pos.y, status: task.status });
+      });
+    });
+    setTaskDotPositions(dots);
 
-    // Phase 6 tasks
-    { x: 1800, y: 480, status: 'pending' },
-    { x: 1850, y: 460, status: 'pending' },
-    { x: 1900, y: 440, status: 'pending' },
-  ];
-
-  // Current position (Phase 3)
-  const currentPosition = { x: 450, y: 150 };
+    // Launch position at end of path
+    const endPoint = pathEl.getPointAtLength(totalLength);
+    setLaunchPosition({ x: endPoint.x, y: endPoint.y });
+  }, [phaseData]);
 
   // Calculate overall progress
   const calculateProgress = () => {
@@ -95,7 +98,7 @@ export const Roadmap: React.FC = () => {
     setSelectedPhase(phase);
     
     // Smooth scroll to milestone
-    const milestone = milestones.find(m => m.phase === phase);
+    const milestone = milestonePositions.find(m => m.phase === phase);
     if (milestone && containerRef.current) {
       const targetX = milestone.x * zoom - window.innerWidth / 2;
       
@@ -196,16 +199,16 @@ export const Roadmap: React.FC = () => {
           <svg 
             ref={svgRef}
             className="roadmap-svg" 
-            width="2400" 
-            height="600" 
-            viewBox="0 0 2400 600"
+            width="3600" 
+            height="700" 
+            viewBox="0 0 3800 700"
             style={{ transform: `scale(${zoom})`, transformOrigin: 'left center' }}
           >
-            <RoadmapPath />
-            <TaskDots taskDots={taskDots} />
+            <RoadmapPath ref={pathRef} points={roadmapCurvePoints} />
+            <TaskDots taskDots={taskDotPositions} />
             
             {/* Milestones */}
-            {milestones.map(milestone => (
+            {milestonePositions.map(milestone => (
               <Milestone
                 key={milestone.id}
                 milestone={milestone}
@@ -216,17 +219,36 @@ export const Roadmap: React.FC = () => {
               />
             ))}
             
-            {/* Current Position */}
-            <CurrentPosition x={currentPosition.x} y={currentPosition.y} />
+            {/* Current Position (last in-progress task) */}
+            {currentDot && (
+              <CurrentPosition x={currentDot.x} y={currentDot.y} />
+            )}
             
-            {/* Destination */}
-            <g>
-              <circle cx="2300" cy="300" r="35" className="fill-blue-500 opacity-20" />
-              <circle cx="2300" cy="300" r="25" className="fill-blue-500" />
-              <text x="2300" y="305" className="fill-white text-sm font-bold" textAnchor="middle">
-                Launch
-              </text>
-            </g>
+            {/* Launch (dynamic) */}
+            {launchPosition && (
+              <g>
+                <circle
+                  cx={launchPosition.x}
+                  cy={launchPosition.y}
+                  r="35"
+                  className="fill-blue-500 opacity-20"
+                />
+                <circle
+                  cx={launchPosition.x}
+                  cy={launchPosition.y}
+                  r="25"
+                  className="fill-blue-500"
+                />
+                <text
+                  x={launchPosition.x}
+                  y={launchPosition.y + 5}
+                  className="fill-white text-sm font-bold"
+                  textAnchor="middle"
+                >
+                  Launch
+                </text>
+              </g>
+            )}
           </svg>
         </div>
       </div>
