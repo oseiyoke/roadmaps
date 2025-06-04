@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roadmap Journey</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background-color: var(--gray-50);
+            color: var(--gray-800);
+            overflow-x: auto;
+            position: relative;
+        }
+
+        /* Enhanced Terrain Background */
+        .terrain-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            opacity: 0.15;
+            pointer-events: none;
+            background: 
+                /* Hills and valleys - more visible */
+                radial-gradient(ellipse 1200px 400px at 15% 60%, rgba(37, 99, 235, 0.4) 0%, transparent 50%),
+                radial-gradient(ellipse 1000px 350px at 45% 30%, rgba(16, 185, 129, 0.3) 0%, transparent 50%),
+                radial-gradient(ellipse 800px 300px at 75% 70%, rgba(245, 158, 11, 0.2) 0%, transparent 45%),
+                radial-gradient(ellipse 600px 200px at 85% 20%, rgba(139, 69, 19, 0.15) 0%, transparent 40%);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+        }
+
+        /* Background Pattern */
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            opacity: 0.04;
+            pointer-events: none;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 80px, var(--gray-300) 80px, var(--gray-300) 81px),
+                repeating-linear-gradient(90deg, transparent, transparent 80px, var(--gray-300) 80px, var(--gray-300) 81px);
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--gray-200);
+            z-index: 100;
+            padding: 1rem 2rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .project-name {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+            margin-top: 0.25rem;
+        }
+
+        /* Roadmap Container */
+        .roadmap-container {
+            position: relative;
+            width: max-content;
+            height: 100vh;
+            padding: 6rem 4rem 2rem 4rem;
+            min-width: 100vw;
+        }
+
+        /* SVG Roadmap */
+        .roadmap-svg {
+            width: 2400px;
+            height: 600px;
+        }
+
+        /* Road Path Styles - Make it look like actual road */
+        .road-background {
+            fill: none;
+            stroke: #2d3748;
+            stroke-width: 80;
+            stroke-linecap: round;
+        }
+
+        .road-center-line {
+            fill: none;
+            stroke: #ffd700;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 20 15;
+        }
+
+        .road-edges {
+            fill: none;
+            stroke: #f7fafc;
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+
+        .road-progress {
+            fill: none;
+            stroke: var(--primary-light);
+            stroke-width: 80;
+            stroke-linecap: round;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 600;
+            transition: stroke-dashoffset 0.5s ease;
+            opacity: 0.2;
+        }
+
+        .road-border {
+            fill: none;
+            stroke: #1a202c;
+            stroke-width: 84;
+            stroke-linecap: round;
+        }
+
+        /* Milestone Styles */
+        .milestone {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .milestone-circle {
+            fill: white;
+            stroke: var(--gray-300);
+            stroke-width: 3;
+            transition: all 0.3s ease;
+        }
+
+        .milestone.completed .milestone-circle {
+            fill: var(--success);
+            stroke: var(--success);
+        }
+
+        .milestone.in-progress .milestone-circle {
+            fill: var(--warning);
+            stroke: var(--warning);
+        }
+
+        .milestone.critical .milestone-circle {
+            fill: #ffd700;
+            stroke: #f59e0b;
+            stroke-width: 4;
+            filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.5));
+        }
+
+        .milestone.critical.completed .milestone-circle {
+            fill: #ffd700;
+            stroke: var(--success);
+        }
+
+        .milestone.critical.in-progress .milestone-circle {
+            fill: #ffd700;
+            stroke: var(--warning);
+        }
+
+        .milestone:hover .milestone-circle {
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+        }
+
+        .milestone-date {
+            font-size: 12px;
+            fill: var(--gray-500);
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        /* Task Dots */
+        .task-dot {
+            fill: var(--gray-300);
+            transition: all 0.2s ease;
+        }
+
+        .task-dot.completed {
+            fill: var(--success);
+        }
+
+        .task-dot.in-progress {
+            fill: var(--warning);
+        }
+
+        /* Current Position Marker */
+        .current-position {
+            fill: var(--primary);
+            filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.4));
+        }
+
+        @keyframes pulse-marker {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(1.5);
+            }
+            50% {
+                opacity: 0.1;
+                transform: scale(2);
+            }
+        }
+
+        .current-position-pulse {
+            fill: var(--primary);
+            opacity: 0.3;
+            animation: pulse-marker 2s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        .you-are-here-text {
+            font-size: 10px;
+            font-weight: bold;
+            fill: white;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        /* Hover Tooltip */
+        .tooltip {
+            position: absolute;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+            z-index: 50;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tooltip h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.25rem;
+        }
+
+        .tooltip p {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
+
+        /* Side Drawer */
+        .side-drawer {
+            position: fixed;
+            right: -480px;
+            top: 0;
+            width: 480px;
+            height: 100vh;
+            background: white;
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 200;
+            overflow-y: auto;
+        }
+
+        .side-drawer.open {
+            right: 0;
+        }
+
+        .drawer-header {
+            padding: 2rem;
+            border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            background: white;
+        }
+
+        .drawer-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray-400);
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .drawer-close:hover {
+            color: var(--gray-600);
+        }
+
+        .phase-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .phase-badge.critical {
+            background: var(--danger);
+        }
+
+        .drawer-content {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--gray-400);
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+        }
+
+        .task-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid var(--gray-300);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .task-item.completed .task-checkbox {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .task-item.in-progress .task-checkbox {
+            background: var(--warning);
+            border-color: var(--warning);
+        }
+
+        .task-checkbox::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .task-item:not(.completed):not(.in-progress) .task-checkbox::after {
+            content: '';
+        }
+
+        .pain-point, .outcome, .requirement {
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--gray-200);
+        }
+
+        .pain-point h4, .outcome h4, .requirement h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.25rem;
+        }
+
+        .pain-point p, .outcome p, .requirement p {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+
+        .timeline-info {
+            display: flex;
+            gap: 2rem;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-item {
+            flex: 1;
+        }
+
+        .timeline-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 150;
+        }
+
+        .overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Progress Indicator */
+        .progress-indicator {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 50;
+        }
+
+        .progress-bar {
+            width: 200px;
+            height: 6px;
+            background: var(--gray-200);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 40%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        /* Zoom Controls */
+        .zoom-controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 50;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            border: 1px solid var(--gray-200);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--gray-600);
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .zoom-btn:hover {
+            background: var(--gray-50);
+        }
+    </style>
+</head>
+<body>
+    <div class="background-pattern"></div>
+    <div class="terrain-bg"></div>
+    
+    <header class="header">
+        <h1>Roadmap Journey</h1>
+        <div class="project-name">CTM Platform Development</div>
+    </header>
+
+    <div class="roadmap-container">
+        <svg class="roadmap-svg" viewBox="0 0 2400 600">
+            <!-- Define gradients -->
+            <defs>
+                <linearGradient id="roadGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#e5e7eb;stop-opacity:1" />
+                    <stop offset="40%" style="stop-color:#d1d5db;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#e5e7eb;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+
+            <!-- Road Path - Actual road styling -->
+            <path id="roadPath" d="M 50 300 Q 400 100 750 300 T 1400 300 Q 1750 500 2100 300 L 2350 300" 
+                  class="road-border"/>
+            <path d="M 50 300 Q 400 100 750 300 T 1400 300 Q 1750 500 2100 300 L 2350 300" 
+                  class="road-background"/>
+            <path d="M 50 300 Q 400 100 750 300 T 1400 300 Q 1750 500 2100 300 L 2350 300" 
+                  class="road-progress"/>
+            
+            <!-- Road center line (dashed yellow) -->
+            <path d="M 50 300 Q 400 100 750 300 T 1400 300 Q 1750 500 2100 300 L 2350 300" 
+                  class="road-center-line"/>
+            
+            <!-- Road edges (white lines) -->
+            <path d="M 50 300 Q 400 100 750 300 T 1400 300 Q 1750 500 2100 300 L 2350 300" 
+                  class="road-edges" transform="translate(0,-38)"/>
+            <path d="M 50 300 Q 400 100 750 300 T 1400 300 Q 1750 500 2100 300 L 2350 300" 
+                  class="road-edges" transform="translate(0,38)"/>
+
+            <!-- Task dots along the path -->
+            <!-- Phase 1 tasks -->
+            <circle cx="150" cy="275" r="6" class="task-dot completed"/>
+            <circle cx="200" cy="240" r="6" class="task-dot completed"/>
+            <circle cx="250" cy="210" r="6" class="task-dot in-progress"/>
+            <circle cx="300" cy="180" r="6" class="task-dot"/>
+            
+            <!-- Phase 2 tasks -->
+            <circle cx="450" cy="125" r="6" class="task-dot completed"/>
+            <circle cx="500" cy="130" r="6" class="task-dot completed"/>
+            <circle cx="550" cy="140" r="6" class="task-dot"/>
+            <circle cx="600" cy="160" r="6" class="task-dot"/>
+            
+            <!-- Phase 3 tasks -->
+            <circle cx="800" cy="310" r="6" class="task-dot in-progress"/>
+            <circle cx="850" cy="305" r="6" class="task-dot"/>
+            <circle cx="900" cy="302" r="6" class="task-dot"/>
+            <circle cx="950" cy="300" r="6" class="task-dot"/>
+
+            <!-- Phase 4 tasks -->
+            <circle cx="1200" cy="298" r="6" class="task-dot"/>
+            <circle cx="1250" cy="299" r="6" class="task-dot"/>
+            <circle cx="1300" cy="300" r="6" class="task-dot"/>
+
+            <!-- Phase 5 tasks -->
+            <circle cx="1500" cy="320" r="6" class="task-dot"/>
+            <circle cx="1550" cy="340" r="6" class="task-dot"/>
+            <circle cx="1600" cy="370" r="6" class="task-dot"/>
+
+            <!-- Phase 6 tasks -->
+            <circle cx="1900" cy="380" r="6" class="task-dot"/>
+            <circle cx="1950" cy="350" r="6" class="task-dot"/>
+            <circle cx="2000" cy="320" r="6" class="task-dot"/>
+
+            <!-- Milestones - Fixed positions to align with road -->
+            <g class="milestone completed" data-phase="1">
+                <circle cx="100" cy="295" r="25" class="milestone-circle"/>
+                <text x="100" y="340" class="milestone-date">Jun 9 - Jul 7</text>
+            </g>
+
+            <g class="milestone completed critical" data-phase="2">
+                <circle cx="400" cy="100" r="30" class="milestone-circle"/>
+                <text x="400" y="65" class="milestone-date">Jul 8 - Aug 4</text>
+            </g>
+
+            <g class="milestone in-progress critical" data-phase="3">
+                <circle cx="750" cy="300" r="30" class="milestone-circle"/>
+                <text x="750" y="365" class="milestone-date">Aug 5 - Sep 1</text>
+            </g>
+
+            <!-- Current Position Marker - "You are here" -->
+            <g class="current-position-marker">
+                <circle cx="750" cy="300" r="50" class="current-position-pulse"/>
+                <circle cx="750" cy="300" r="8" class="current-position"/>
+                <text x="750" y="288" class="you-are-here-text">YOU ARE HERE</text>
+            </g>
+
+            <g class="milestone" data-phase="4">
+                <circle cx="1100" cy="300" r="25" class="milestone-circle"/>
+                <text x="1100" y="345" class="milestone-date">Sep 2 - Sep 29</text>
+            </g>
+
+            <g class="milestone critical" data-phase="5">
+                <circle cx="1400" cy="300" r="30" class="milestone-circle"/>
+                <text x="1400" y="255" class="milestone-date">Sep 30 - Oct 27</text>
+            </g>
+
+            <g class="milestone critical" data-phase="6">
+                <circle cx="1750" cy="500" r="30" class="milestone-circle"/>
+                <text x="1750" y="545" class="milestone-date">Oct 28 - Nov 24</text>
+            </g>
+
+            <!-- Destination -->
+            <g>
+                <circle cx="2300" cy="300" r="35" fill="var(--primary)" opacity="0.2"/>
+                <circle cx="2300" cy="300" r="25" fill="var(--primary)"/>
+                <text x="2300" y="305" fill="white" font-size="14" font-weight="bold" text-anchor="middle">Launch</text>
+            </g>
+        </svg>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip" id="tooltip">
+        <h4></h4>
+        <p></p>
+    </div>
+
+    <!-- Side Drawer -->
+    <div class="side-drawer" id="sideDrawer">
+        <div class="drawer-header">
+            <button class="drawer-close" onclick="closeDrawer()">×</button>
+            <div class="phase-badge" id="phaseBadge">Phase 1</div>
+            <h2 id="phaseTitle">Quick Wins & Foundation</h2>
+            <div class="timeline-info">
+                <div class="timeline-item">
+                    <div class="timeline-label">Start Date</div>
+                    <div class="timeline-value" id="startDate">June 9, 2025</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-label">End Date</div>
+                    <div class="timeline-value" id="endDate">July 7, 2025</div>
+                </div>
+            </div>
+        </div>
+        <div class="drawer-content" id="drawerContent">
+            <!-- Content will be dynamically inserted -->
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+        <span class="progress-text">Overall Progress</span>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        <span class="progress-text" id="progressPercentage">9%</span>
+    </div>
+
+    <!-- Zoom Controls -->
+    <div class="zoom-controls">
+        <button class="zoom-btn" id="zoomOut">−</button>
+        <button class="zoom-btn" id="zoomIn">+</button>
+    </div>
+
+    <script>
+        // Phase data
+        const phaseData = {
+            1: {
+                title: "Quick Wins & Foundation",
+                tagline: "Get the basics running and show immediate value",
+                startDate: "June 9, 2025",
+                endDate: "July 7, 2025",
+                critical: false,
+                tasks: [
+                    { name: "Set up AWS/cloud infrastructure for hosting", status: "completed" },
+                    { name: "Deploy Malindi AI assistant (backend and frontend)", status: "completed" },
+                    { name: "Create basic web interface for CTM", status: "in-progress" },
+                    { name: "Connect to existing databases (Oracle, NOP)", status: "pending" },
+                    { name: "Implement basic search functionality", status: "pending" },
+                    { name: "Set up WhatsApp integration via Wassenger", status: "pending" },
+                    { name: "Configure OpenAI integration for Malindi", status: "pending" },
+                    { name: "Basic user authentication and access control", status: "pending" }
+                ],
+                painPoints: [
+                    "No centralised system for trade information",
+                    "Manual WhatsApp message monitoring across 200+ groups",
+                    "Traders spending hours searching for customer information",
+                    "No quick way to look up rates or trade history"
+                ],
+                outcomes: [
+                    "Malindi can answer basic queries about trades and customers",
+                    "Traders can search historical data in one place",
+                    "WhatsApp messages start being captured automatically",
+                    "30-minute tasks reduced to 2-minute queries"
+                ],
+                requirements: [
+                    "Cloud hosting (AWS/Azure/GCP)",
+                    "Wassenger subscription (£35/month)",
+                    "OpenAI API subscription (£50/month)",
+                    "SSL certificates for secure access",
+                    "Domain name for CTM platform",
+                    "Basic monitoring tools"
+                ]
+            },
+            2: {
+                title: "Data Unification",
+                tagline: "Bring all scattered data into one place",
+                startDate: "July 8, 2025",
+                endDate: "August 4, 2025",
+                critical: true,
+                tasks: [
+                    { name: "[CRITICAL PATH] Complete historical data migration from all sources", status: "completed" },
+                    { name: "Build data reconciliation engine", status: "completed" },
+                    { name: "Create unified customer profiles", status: "pending" },
+                    { name: "Implement automated daily data sync", status: "pending" },
+                    { name: "Set up data quality monitoring", status: "pending" },
+                    { name: "Build comprehensive audit trail", status: "pending" },
+                    { name: "Create data backup procedures", status: "pending" }
+                ],
+                painPoints: [
+                    "Customer data scattered across HubSpot, Excel sheets, and personal folders",
+                    "Trade records inconsistent across Oracle, NOP, and blotter",
+                    "Historical WhatsApp conversations inaccessible",
+                    "Rate history stored in various spreadsheets"
+                ],
+                outcomes: [
+                    "Single source of truth for all customer data",
+                    "Complete trade history accessible instantly",
+                    "Data discrepancies automatically identified",
+                    "Compliance-ready audit trails"
+                ],
+                requirements: [
+                    "HubSpot API access",
+                    "Database migration tools",
+                    "Data storage expansion",
+                    "Backup infrastructure",
+                    "Data quality monitoring software"
+                ],
+                dependencies: ["Phase 1 infrastructure complete"]
+            },
+            3: {
+                title: "Real-Time Operations",
+                tagline: "See everything as it happens",
+                startDate: "August 5, 2025",
+                endDate: "September 1, 2025",
+                critical: true,
+                tasks: [
+                    { name: "Build real-time position dashboard", status: "in-progress" },
+                    { name: "[CRITICAL PATH] Integrate with SMS for settlement visibility", status: "pending" },
+                    { name: "Create automated rate collection system", status: "pending" },
+                    { name: "Implement liquidity monitoring", status: "pending" },
+                    { name: "Set up critical alerts (position limits, liquidity warnings)", status: "pending" },
+                    { name: "Build mobile-responsive interface", status: "pending" },
+                    { name: "Create role-based dashboards", status: "pending" }
+                ],
+                painPoints: [
+                    "Liquidity gaps discovered too late",
+                    "Settlement status unknown until manually checked",
+                    "No visibility into current positions across accounts",
+                    "Rate updates done manually and inconsistently"
+                ],
+                outcomes: [
+                    "Live view of all positions and liquidity",
+                    "Automatic alerts before liquidity issues",
+                    "Settlement status visible without manual checking",
+                    "Traders can access critical info on mobile"
+                ],
+                requirements: [
+                    "WebSocket infrastructure for real-time updates",
+                    "SMS API integration access",
+                    "Market data feed subscriptions",
+                    "Notification service (email/SMS alerts)",
+                    "Mobile UI framework"
+                ],
+                dependencies: ["SMS team to provide API access", "Completed data unification (Phase 2)"]
+            },
+            4: {
+                title: "Intelligent Automation",
+                tagline: "Let the system handle routine tasks",
+                startDate: "September 2, 2025",
+                endDate: "September 29, 2025",
+                critical: false,
+                tasks: [
+                    { name: "Build automated rate distribution engine", status: "pending" },
+                    { name: "Implement smart trade recording", status: "pending" },
+                    { name: "Create customer tier management system", status: "pending" },
+                    { name: "Develop anomaly detection algorithms", status: "pending" },
+                    { name: "Build automated reporting suite", status: "pending" },
+                    { name: "Integrate with compliance checks", status: "pending" },
+                    { name: "Set up automated customer communications", status: "pending" }
+                ],
+                painPoints: [
+                    "Manual rate sharing to 200+ WhatsApp groups",
+                    "Repetitive trade recording across multiple systems",
+                    "Customer tier rates calculated manually",
+                    "No proactive issue identification"
+                ],
+                outcomes: [
+                    "Rates shared automatically based on customer tiers",
+                    "Trade recording happens once, updates everywhere",
+                    "Unusual patterns flagged automatically",
+                    "Daily reports generated without manual work"
+                ],
+                requirements: [
+                    "WhatsApp Business API upgrade",
+                    "Advanced analytics tools",
+                    "Workflow automation engine",
+                    "Scheduled task infrastructure",
+                    "Template management system"
+                ],
+                dependencies: ["Stable real-time operations (Phase 3)"]
+            },
+            5: {
+                title: "Advanced Intelligence",
+                tagline: "Predict problems before they happen",
+                startDate: "September 30, 2025",
+                endDate: "October 27, 2025",
+                critical: true,
+                tasks: [
+                    { name: "Implement predictive analytics for liquidity", status: "pending" },
+                    { name: "Build customer behaviour analysis", status: "pending" },
+                    { name: "Create trade pattern recognition", status: "pending" },
+                    { name: "Develop margin optimisation tools", status: "pending" },
+                    { name: "Build knowledge capture system", status: "pending" },
+                    { name: "Implement performance analytics", status: "pending" },
+                    { name: "Create training modules", status: "pending" }
+                ],
+                painPoints: [
+                    "Reactive approach to liquidity management",
+                    "No insight into customer behaviour patterns",
+                    "Unable to optimise trading strategies",
+                    "Knowledge lost when staff leave"
+                ],
+                outcomes: [
+                    "Liquidity needs predicted 24 hours in advance",
+                    "Customer churn risk identified early",
+                    "Trading strategies optimised by AI",
+                    "New staff onboarded faster"
+                ],
+                requirements: [
+                    "Machine learning infrastructure",
+                    "Historical data analysis tools",
+                    "Advanced visualisation platform",
+                    "Knowledge base software",
+                    "Training content management system"
+                ],
+                dependencies: ["3+ months of clean, unified data", "All previous phases stable"]
+            },
+            6: {
+                title: "Seamless Integration",
+                tagline: "Become the central nervous system",
+                startDate: "October 28, 2025",
+                endDate: "November 24, 2025",
+                critical: true,
+                tasks: [
+                    { name: "Complete SS integration for support context", status: "pending" },
+                    { name: "[CRITICAL PATH] Full bi-directional SMS integration", status: "pending" },
+                    { name: "Enhanced LCS integration for real-time compliance", status: "pending" },
+                    { name: "Build unified Seamless dashboard", status: "pending" },
+                    { name: "Implement cross-module workflows", status: "pending" },
+                    { name: "Create executive reporting suite", status: "pending" },
+                    { name: "Performance optimisation", status: "pending" }
+                ],
+                painPoints: [
+                    "Support team lacks customer context",
+                    "Compliance reviews slow down trading",
+                    "Settlement delays not communicated proactively",
+                    "No unified view across all operations"
+                ],
+                outcomes: [
+                    "Support sees full customer trading history",
+                    "Compliance checks happen in real-time",
+                    "All teams work from same information",
+                    "Executives have complete operational visibility"
+                ],
+                requirements: [
+                    "API gateway for all integrations",
+                    "Enterprise message bus",
+                    "Unified authentication system",
+                    "Executive dashboard platform",
+                    "System monitoring tools"
+                ],
+                dependencies: ["SS, SMS, and LCS systems operational", "Stable API contracts with all modules"]
+            }
+        };
+
+        // Tooltip handling
+        const tooltip = document.getElementById('tooltip');
+        let tooltipTimeout;
+
+        document.querySelectorAll('.milestone').forEach(milestone => {
+            milestone.addEventListener('mouseenter', (e) => {
+                const phase = parseInt(milestone.dataset.phase);
+                const data = phaseData[phase];
+                if (data) {
+                    const rect = milestone.getBoundingClientRect();
+                    tooltip.querySelector('h4').textContent = data.title;
+                    tooltip.querySelector('p').textContent = data.tagline;
+                    tooltip.style.left = rect.left + rect.width / 2 - tooltip.offsetWidth / 2 + 'px';
+                    tooltip.style.top = rect.bottom + 10 + 'px';
+                    tooltip.classList.add('show');
+                }
+            });
+
+            milestone.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('show');
+            });
+
+            milestone.addEventListener('click', (e) => {
+                const phase = parseInt(milestone.dataset.phase);
+                openDrawer(phase);
+            });
+        });
+
+        // Drawer functions
+        function openDrawer(phase) {
+            const data = phaseData[phase];
+            if (!data) return;
+
+            // Update header
+            document.getElementById('phaseBadge').textContent = `Phase ${phase}`;
+            document.getElementById('phaseBadge').className = `phase-badge ${data.critical ? 'critical' : ''}`;
+            document.getElementById('phaseTitle').textContent = data.title;
+            document.getElementById('startDate').textContent = data.startDate;
+            document.getElementById('endDate').textContent = data.endDate;
+
+            // Update content
+            const content = document.getElementById('drawerContent');
+            content.innerHTML = `
+                <div class="section">
+                    <h3>
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        Tasks
+                    </h3>
+                    <ul class="task-list">
+                        ${data.tasks.map(task => `
+                            <li class="task-item ${task.status}">
+                                <div class="task-checkbox"></div>
+                                <span>${task.name}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+
+                <div class="section">
+                    <h3>
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Pain Points Addressed
+                    </h3>
+                    ${data.painPoints.map(point => `
+                        <div class="pain-point">
+                            <p>${point}</p>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="section">
+                    <h3>
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Expected Outcomes
+                    </h3>
+                    ${data.outcomes.map(outcome => `
+                        <div class="outcome">
+                            <p>${outcome}</p>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="section">
+                    <h3>
+                        <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        Requirements & Prerequisites
+                    </h3>
+                    ${data.requirements.map(req => `
+                        <div class="requirement">
+                            <p>${req}</p>
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${data.dependencies ? `
+                    <div class="section">
+                        <h3>
+                            <svg class="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            Dependencies
+                        </h3>
+                        ${data.dependencies.map(dep => `
+                            <div class="requirement">
+                                <p>${dep}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+
+            // Open drawer and overlay
+            document.getElementById('sideDrawer').classList.add('open');
+            document.getElementById('overlay').classList.add('show');
+        }
+
+        function closeDrawer() {
+            document.getElementById('sideDrawer').classList.remove('open');
+            document.getElementById('overlay').classList.remove('show');
+        }
+
+        // Smooth horizontal scrolling
+        let isScrolling = false;
+        const roadmapContainer = document.querySelector('.roadmap-container');
+
+        function smoothScrollToMilestone(milestoneElement) {
+            const rect = milestoneElement.getBoundingClientRect();
+            const containerRect = roadmapContainer.getBoundingClientRect();
+            const targetX = rect.left - containerRect.left + roadmapContainer.scrollLeft - window.innerWidth / 2 + rect.width / 2;
+            
+            roadmapContainer.scrollTo({
+                left: targetX,
+                behavior: 'smooth'
+            });
+        }
+
+        // Auto-scroll to milestone when drawer opens
+        const originalOpenDrawer = openDrawer;
+        openDrawer = function(phase) {
+            originalOpenDrawer(phase);
+            const milestone = document.querySelector(`.milestone[data-phase="${phase}"]`);
+            if (milestone) {
+                setTimeout(() => smoothScrollToMilestone(milestone), 100);
+            }
+        };
+
+        // Progress calculation and animation
+        function calculateProgress() {
+            let totalTasks = 0;
+            let completedTasks = 0;
+            
+            Object.values(phaseData).forEach(phase => {
+                phase.tasks.forEach(task => {
+                    totalTasks++;
+                    if (task.status === 'completed') {
+                        completedTasks++;
+                    }
+                });
+            });
+            
+            return Math.round((completedTasks / totalTasks) * 100);
+        }
+
+        function updateProgressBar() {
+            const progress = calculateProgress();
+            const progressFill = document.querySelector('.progress-fill');
+            const progressText = document.getElementById('progressPercentage');
+            
+            progressFill.style.width = `${progress}%`;
+            progressText.textContent = `${progress}%`;
+            
+            // Update road progress
+            const roadProgress = document.querySelector('.road-progress');
+            const pathLength = roadProgress.getTotalLength();
+            const offset = pathLength - (pathLength * progress / 100);
+            roadProgress.style.strokeDasharray = pathLength;
+            roadProgress.style.strokeDashoffset = offset;
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('sideDrawer').classList.contains('open')) {
+                closeDrawer();
+            }
+        });
+
+        // Parallax effect for background
+        roadmapContainer.addEventListener('scroll', () => {
+            const scrollLeft = roadmapContainer.scrollLeft;
+            const backgroundPattern = document.querySelector('.background-pattern');
+            const terrainBg = document.querySelector('.terrain-bg');
+            
+            backgroundPattern.style.transform = `translateX(${-scrollLeft * 0.5}px)`;
+            terrainBg.style.transform = `translateX(${-scrollLeft * 0.3}px)`;
+        });
+
+        // Add hover effects to task dots
+        document.querySelectorAll('.task-dot').forEach((dot, index) => {
+            dot.style.cursor = 'pointer';
+            dot.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.5)';
+                this.style.transition = 'transform 0.2s ease';
+            });
+            
+            dot.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateProgressBar();
+            
+            // Set initial scroll position to show the beginning of the roadmap
+            setTimeout(() => {
+                roadmapContainer.scrollLeft = 0;
+            }, 100);
+        });
+
+        // Touch support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        roadmapContainer.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        roadmapContainer.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                const milestones = Array.from(document.querySelectorAll('.milestone'));
+                const viewportCenter = window.innerWidth / 2;
+                
+                let closestMilestone = null;
+                let closestDistance = Infinity;
+                
+                milestones.forEach(milestone => {
+                    const rect = milestone.getBoundingClientRect();
+                    const distance = Math.abs(rect.left + rect.width / 2 - viewportCenter);
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestMilestone = milestone;
+                    }
+                });
+                
+                if (closestMilestone) {
+                    smoothScrollToMilestone(closestMilestone);
+                }
+            }
+        }
+
+        // Zoom controls
+        let currentZoom = 1;
+        const roadmapSvg = document.querySelector('.roadmap-svg');
+        
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            if (currentZoom < 1.5) {
+                currentZoom += 0.1;
+                roadmapSvg.style.transform = `scale(${currentZoom})`;
+                roadmapSvg.style.transformOrigin = 'left center';
+            }
+        });
+
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            if (currentZoom > 0.5) {
+                currentZoom -= 0.1;
+                roadmapSvg.style.transform = `scale(${currentZoom})`;
+                roadmapSvg.style.transformOrigin = 'left center';
+            }
+        });
+
+        // Call initialization functions
+        window.addEventListener('load', () => {
+            updateProgressBar();
+        });
+    </script>
+</body>
+</html>
