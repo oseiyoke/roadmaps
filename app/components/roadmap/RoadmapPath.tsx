@@ -61,7 +61,7 @@ export const RoadmapPath: React.FC<RoadmapPathProps> = ({ pathId = 'roadPath' })
         {/* Road progress overlay */}
         <path 
           d={pathData}
-          className="road-progress fill-none stroke-blue-400 stroke-[80] rounded-full opacity-20"
+          className="road-progress fill-none stroke-green-800 stroke-[80] rounded-full opacity-20"
           strokeLinecap="round"
           strokeDasharray="1000"
           strokeDashoffset="600"
@@ -70,13 +70,13 @@ export const RoadmapPath: React.FC<RoadmapPathProps> = ({ pathId = 'roadPath' })
         {/* Road center line (dashed yellow) */}
         <path 
           d={pathData}
-          className="fill-none stroke-yellow-400 stroke-[3] rounded-full"
+          className="fill-none stroke-yellow-700 stroke-[3] rounded-full"
           strokeLinecap="round"
           strokeDasharray="20 15"
         />
         
         {/* Road edge lines (white) */}
-        <path 
+        {/* <path 
           d={pathData}
           className="fill-none stroke-white stroke-[2] rounded-full"
           strokeLinecap="round"
@@ -86,8 +86,8 @@ export const RoadmapPath: React.FC<RoadmapPathProps> = ({ pathId = 'roadPath' })
           d={pathData}
           className="fill-none stroke-white stroke-[2] rounded-full"
           strokeLinecap="round"
-          transform="translate(0,38)"
-        />
+          transform="translate(0,38)" 
+        />*/}
       </g>
     </>
   );

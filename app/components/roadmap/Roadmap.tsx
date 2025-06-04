@@ -39,17 +39,17 @@ export const Roadmap: React.FC = () => {
     // Phase 1 tasks
     { x: 150, y: 275, status: 'completed' },
     { x: 200, y: 240, status: 'completed' },
-    { x: 250, y: 210, status: 'in-progress' },
-    { x: 300, y: 180, status: 'pending' },
+    { x: 250, y: 210, status: 'completed' },
+    { x: 300, y: 180, status: 'completed' },
     
     // Phase 2 tasks
-    { x: 500, y: 160, status: 'completed' },
-    { x: 550, y: 180, status: 'completed' },
+    { x: 500, y: 160, status: 'in-progress' },
+    { x: 550, y: 180, status: 'pending' },
     { x: 600, y: 210, status: 'pending' },
     { x: 650, y: 240, status: 'pending' },
     
     // Phase 3 tasks
-    { x: 800, y: 310, status: 'in-progress' },
+    { x: 800, y: 310, status: 'pending' },
     { x: 850, y: 305, status: 'pending' },
     { x: 900, y: 302, status: 'pending' },
     { x: 950, y: 300, status: 'pending' },
@@ -71,7 +71,7 @@ export const Roadmap: React.FC = () => {
   ];
 
   // Current position (Phase 3)
-  const currentPosition = { x: 750, y: 300 };
+  const currentPosition = { x: 450, y: 150 };
 
   // Calculate overall progress
   const calculateProgress = () => {

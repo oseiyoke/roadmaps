@@ -34,11 +34,11 @@ export const Milestone: React.FC<MilestoneProps> = ({
     }
     
     return milestone.critical 
-      ? `${baseClasses} fill-yellow-400 stroke-orange-500 stroke-[4]` 
+      ? `${baseClasses} fill-white stroke-gray-300` 
       : `${baseClasses} fill-white stroke-gray-300`;
   };
 
-  const radius = milestone.critical ? 30 : 25;
+  const radius = 25;
 
   return (
     <g 
@@ -48,15 +48,6 @@ export const Milestone: React.FC<MilestoneProps> = ({
       onMouseLeave={onMouseLeave}
     >
       {/* Glow effect for critical milestones */}
-      {milestone.critical && (
-        <circle 
-          cx={milestone.x} 
-          cy={milestone.y} 
-          r={radius + 10}
-          className="fill-yellow-400 opacity-20 animate-pulse"
-        />
-      )}
-      
       {/* Main milestone circle */}
       <circle 
         cx={milestone.x} 
@@ -79,7 +70,7 @@ export const Milestone: React.FC<MilestoneProps> = ({
       <text 
         x={milestone.x} 
         y={milestone.y + (milestone.y < 300 ? -45 : 45)} 
-        className="fill-gray-500 text-xs pointer-events-none"
+        className=" hidden fill-gray-500 text-xs pointer-events-none"
         textAnchor="middle"
       >
         {dateRange}
