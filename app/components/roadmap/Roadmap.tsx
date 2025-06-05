@@ -10,10 +10,12 @@ import { SideDrawer } from './SideDrawer';
 import { ProgressIndicator } from './ProgressIndicator';
 import { ZoomControls } from './ZoomControls';
 import { LandscapeBackground } from './LandscapeBackground';
-import { phaseData, roadmapCurvePoints } from '@/app/data/roadmapData';
+import { roadmapCurvePoints } from '@/app/data/roadmapData';
 import { Milestone as MilestoneType, TaskDot } from '@/app/types/roadmap';
+import { useNotionData } from '@/app/hooks/useNotionData';
 
 export const Roadmap: React.FC = () => {
+  const { phaseData, loading, error, refresh } = useNotionData();
   const [selectedPhase, setSelectedPhase] = useState<number | null>(null);
   const [tooltipData, setTooltipData] = useState<{
     show: boolean;
@@ -37,12 +39,13 @@ export const Roadmap: React.FC = () => {
   // Compute dynamic positions for milestones and task dots once the path is rendered
   useEffect(() => {
     const pathEl = pathRef.current;
-    if (!pathEl) return;
+    if (!pathEl || !phaseData || Object.keys(phaseData).length === 0) return;
     const totalLength = pathEl.getTotalLength();
     const phases = Object.keys(phaseData)
       .map(k => Number(k))
       .sort((a, b) => a - b);
 
+    console.log("phases in roadmap", phases);
     // Milestone positions
     const milestonePos = phases.map((phase, i) => {
       const t = phases.length > 1 ? i / (phases.length - 1) : 0;
@@ -79,6 +82,8 @@ export const Roadmap: React.FC = () => {
 
   // Calculate overall progress
   const calculateProgress = () => {
+    if (!phaseData || Object.keys(phaseData).length === 0) return 0;
+    
     let totalTasks = 0;
     let completedTasks = 0;
     
@@ -91,7 +96,7 @@ export const Roadmap: React.FC = () => {
       });
     });
     
-    return Math.round((completedTasks / totalTasks) * 100);
+    return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   };
 
   // Handle milestone click
@@ -185,7 +190,37 @@ export const Roadmap: React.FC = () => {
       roadProgress.style.strokeDasharray = `${pathLength}`;
       roadProgress.style.strokeDashoffset = `${offset}`;
     }
-  }, []);
+  }, [phaseData]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading roadmap from Notion...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center p-8 bg-red-50 rounded-lg">
+          <h2 className="text-xl font-semibold text-red-700 mb-2">Error Loading Roadmap</h2>
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={refresh}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -210,8 +245,18 @@ export const Roadmap: React.FC = () => {
 
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-30 px-6 py-4 text-center justify-center">
-        <h1 className="text-2xl font-bold text-gray-900">CTM Platform Development</h1>
-        {/* <p className="text-sm text-gray-500 mt-1">CTM Platform Development</p> */}
+        <div className="flex items-center justify-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-900">CTM Platform Development</h1>
+          <button
+            onClick={refresh}
+            className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+            title="Refresh from Notion"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        </div>
       </header>
 
       {/* Roadmap Container */}
@@ -236,7 +281,10 @@ export const Roadmap: React.FC = () => {
               <Milestone
                 key={milestone.id}
                 milestone={milestone}
-                dateRange={`${phaseData[milestone.phase].startDate.split(' ')[0]} ${phaseData[milestone.phase].startDate.split(' ')[1]} - ${phaseData[milestone.phase].endDate.split(' ')[0]} ${phaseData[milestone.phase].endDate.split(' ')[1]}`}
+                dateRange={phaseData[milestone.phase] ? 
+                  `${phaseData[milestone.phase].startDate.split(' ')[0]} ${phaseData[milestone.phase].startDate.split(' ')[1]} - ${phaseData[milestone.phase].endDate.split(' ')[0]} ${phaseData[milestone.phase].endDate.split(' ')[1]}` : 
+                  ''
+                }
                 onClick={handleMilestoneClick}
                 onMouseEnter={handleMilestoneHover}
                 onMouseLeave={() => setTooltipData(prev => ({ ...prev, show: false }))}

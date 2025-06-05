@@ -94,6 +94,19 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({ isOpen, phase, phaseData
 
         {/* Content */}
         <div className="p-6 space-y-8">
+          {/* About Section */}
+          {phaseData.about && (
+            <section>
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">
+                <DocumentTextIcon className="w-5 h-5 text-gray-400" />
+                About this project
+              </h3>
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <p className="text-sm text-gray-700 whitespace-pre-line">{phaseData.about}</p>
+              </div>
+            </section>
+          )}
+
           {/* Tasks Section */}
           <section>
             <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 mb-4">

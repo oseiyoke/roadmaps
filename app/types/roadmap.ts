@@ -10,6 +10,7 @@ export interface PhaseData {
   endDate: string;
   critical: boolean;
   tasks: Task[];
+  about?: string;
   painPoints: string[];
   outcomes: string[];
   requirements: string[];

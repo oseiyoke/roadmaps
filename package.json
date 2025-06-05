@@ -13,7 +13,8 @@
     "d3-shape": "^3.2.0",
     "next": "15.3.3",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "@notionhq/client": "^2.2.14"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
