@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { PhaseData } from '@/app/types/roadmap';
+import { filterTasksByPhase } from '@/lib/notion';
 
 interface NotionPhase {
   id: string;
@@ -12,6 +13,7 @@ interface NotionPhase {
   startDate: string;
   endDate: string;
   critical: boolean;
+  content?: NotionContent; // aggregated content
 }
 
 interface NotionTask {
@@ -20,6 +22,7 @@ interface NotionTask {
   status: string;
   dueDate: string;
   tags: string[];
+  projectIds: string[];
 }
 
 interface NotionContent {
@@ -29,13 +32,18 @@ interface NotionContent {
   requirements?: string[];
 }
 
+interface RoadmapData {
+  phases: NotionPhase[];
+  tasks: NotionTask[];
+}
+
 export function useNotionData() {
   const [phases, setPhases] = useState<NotionPhase[]>([]);
   const [phaseData, setPhaseData] = useState<Record<number, PhaseData>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch phases on mount
+  // Fetch phases and tasks on mount
   useEffect(() => {
     fetchAllData();
   }, []);
@@ -45,37 +53,28 @@ export function useNotionData() {
       setLoading(true);
       setError(null);
 
-      // Fetch all phases
-      const phasesResponse = await fetch('/api/notion/phases');
-      if (!phasesResponse.ok) throw new Error('Failed to fetch phases');
-      const phasesData: NotionPhase[] = await phasesResponse.json();
-      console.log("phasesData", phasesData);
-      setPhases(phasesData);
+      // Fetch both phases (with content) and tasks in one request
+      const response = await fetch('/api/notion/phases-with-tasks');
+      if (!response.ok) throw new Error('Failed to fetch roadmap data');
+      const data: RoadmapData = await response.json();
 
-      // Fetch detailed data for each phase
+      setPhases(data.phases);
+
+      // Build phase data map with filtered tasks and content
       const phaseDataMap: Record<number, PhaseData> = {};
-      
-      for (const phase of phasesData) {
-        // Fetch phase content
-        const contentResponse = await fetch(`/api/notion/phase/${phase.id}`);
-        const content: NotionContent = contentResponse.ok 
-          ? await contentResponse.json() 
-          : {};
+      data.phases.forEach(phase => {
+        const content = phase.content || {};
 
-        // Fetch phase tasks
-        const tasksResponse = await fetch(`/api/notion/tasks/${phase.id}`);
-        const tasks: NotionTask[] = tasksResponse.ok 
-          ? await tasksResponse.json() 
-          : [];
+        // Filter tasks for this phase
+        const phaseTasks = filterTasksByPhase(data.tasks, phase.id);
 
-        // Map to PhaseData format
         phaseDataMap[phase.phase] = {
           title: phase.title,
           tagline: phase.tagline,
           startDate: formatDate(phase.startDate),
           endDate: formatDate(phase.endDate),
           critical: phase.critical,
-          tasks: tasks.map(task => ({
+          tasks: phaseTasks.map(task => ({
             name: task.name,
             status: task.status as 'completed' | 'in-progress' | 'pending'
           })),
@@ -83,11 +82,10 @@ export function useNotionData() {
           painPoints: content.painPoints || [],
           outcomes: content.outcomes || [],
           requirements: content.requirements || [],
-          dependencies: [] // Add if you have this in Notion
+          dependencies: []
         };
-      }
+      });
 
-      console.log("phaseDataMap", phaseDataMap);
       setPhaseData(phaseDataMap);
     } catch (err) {
       console.error('Error fetching Notion data:', err);

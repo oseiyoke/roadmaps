@@ -1,9 +1,4 @@
-import { Client } from '@notionhq/client';
-
-// Initialize Notion client
-const notion = new Client({
-  auth: process.env.NOTION_API_TOKEN,
-});
+import { notion, NOTION_TO_STATUS, getProjectsDatabaseId, getTasksDatabaseId } from './notion-client';
 
 // Cache configuration
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -20,15 +15,6 @@ function getCached<T>(key: string): T | null {
 function setCache(key: string, data: unknown) {
   cache.set(key, { data, timestamp: Date.now() });
 }
-
-// Status mapping
-export const statusMap = {
-  'Planning': 'in-progress',
-  'In Progress': 'in-progress',
-  'Done': 'completed',
-  'Not Started': 'pending',
-  'Complete': 'completed',
-} as const;
 
 // Type definitions
 interface NotionBlock {
@@ -57,7 +43,7 @@ interface NotionTask {
     Status?: { select?: { name: string } };
     Due?: { date?: { start: string } };
     Tags?: { multi_select?: Array<{ name: string }> };
-    Project?: unknown;
+    Project?: { relation?: Array<{ id: string }> };
   };
 }
 
@@ -65,6 +51,56 @@ interface NotionDatabase {
   id: string;
   title?: Array<{ plain_text: string }>;
   url: string;
+}
+
+export interface Phase {
+  id: string;
+  phase: number;
+  title: string;
+  tagline: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  critical: boolean;
+}
+
+export interface Task {
+  id: string;
+  name: string;
+  status: string;
+  dueDate: string;
+  tags: string[];
+  projectIds: string[];
+}
+
+export interface PhaseContent {
+  about?: string;
+  painPoints?: string[];
+  outcomes?: string[];
+  requirements?: string[];
+}
+
+// Helper function to extract text from rich text
+function extractPlainText(richText?: Array<{ plain_text: string }>): string {
+  return richText?.map(text => text.plain_text).join('') || '';
+}
+
+// Helper function to paginate through Notion results
+async function paginateResults<T>(
+  queryFn: (cursor?: string) => Promise<{ results: T[]; has_more: boolean; next_cursor: string | null }>
+): Promise<T[]> {
+  const allResults: T[] = [];
+  let hasMore = true;
+  let startCursor: string | undefined = undefined;
+  
+  while (hasMore) {
+    const response = await queryFn(startCursor);
+    allResults.push(...response.results);
+    hasMore = response.has_more;
+    startCursor = response.next_cursor || undefined;
+  }
+  
+  return allResults;
 }
 
 // Discover database IDs from a shared page URL
@@ -102,31 +138,35 @@ export async function discoverDatabaseIds(pageUrl: string) {
 }
 
 // Parse Notion blocks into structured content
-export function parsePageContent(blocks: NotionBlock[]) {
-  const content: {
-    about?: string;
-    painPoints?: string[];
-    outcomes?: string[];
-    requirements?: string[];
-    [key: string]: string | string[] | undefined;
-  } = {};
-  
-  let currentSection: string | null = null;
+export function parsePageContent(blocks: NotionBlock[]): PhaseContent {
+  const content: PhaseContent = {};
+  let currentSection: keyof PhaseContent | null = null;
   let currentList: string[] = [];
+  
+  const saveCurrentList = () => {
+    if (!currentSection || currentList.length === 0) return;
+    
+    switch (currentSection) {
+      case 'painPoints':
+        content.painPoints = [...currentList];
+        break;
+      case 'outcomes':
+        content.outcomes = [...currentList];
+        break;
+      case 'requirements':
+        content.requirements = [...currentList];
+        break;
+    }
+  };
   
   blocks.forEach((block) => {
     // Handle headings
     if (block.type === 'heading_1' || block.type === 'heading_2' || block.type === 'heading_3') {
       // Save previous section if it was a list
-      if (currentSection && currentList.length > 0) {
-        content[currentSection] = currentList;
-        currentList = [];
-      }
+      saveCurrentList();
+      currentList = [];
       
-      const headingText = block[block.type]?.rich_text
-        ?.map((text: { plain_text: string }) => text.plain_text)
-        .join('') || '';
-        
+      const headingText = extractPlainText(block[block.type]?.rich_text);
       const normalizedText = headingText.toLowerCase();
       
       // Map heading to section
@@ -143,9 +183,7 @@ export function parsePageContent(blocks: NotionBlock[]) {
     
     // Handle paragraphs
     if (block.type === 'paragraph' && currentSection && block.paragraph) {
-      const text = block.paragraph.rich_text
-        .map((text: { plain_text: string }) => text.plain_text)
-        .join('');
+      const text = extractPlainText(block.paragraph.rich_text);
       
       if (text.trim()) {
         if (currentSection === 'about') {
@@ -158,9 +196,7 @@ export function parsePageContent(blocks: NotionBlock[]) {
     
     // Handle bullet lists
     if (block.type === 'bulleted_list_item' && currentSection && block.bulleted_list_item) {
-      const text = block.bulleted_list_item.rich_text
-        .map((text: { plain_text: string }) => text.plain_text)
-        .join('');
+      const text = extractPlainText(block.bulleted_list_item.rich_text);
       
       if (text.trim()) {
         currentList.push(text);
@@ -169,61 +205,52 @@ export function parsePageContent(blocks: NotionBlock[]) {
   });
   
   // Save last section
-  if (currentSection && currentList.length > 0) {
-    content[currentSection] = currentList;
-  }
+  saveCurrentList();
   
   return content;
 }
 
 // Fetch all phases (projects) from Notion
-export async function fetchPhases() {
+export async function fetchPhases(): Promise<Phase[]> {
   const cacheKey = 'phases';
-  const cached = getCached<Array<{
-    id: string;
-    phase: number;
-    title: string;
-    tagline: string;
-    status: string;
-    startDate: string;
-    endDate: string;
-    critical: boolean;
-  }>>(cacheKey);
+  const cached = getCached<Phase[]>(cacheKey);
   if (cached) return cached;
   
   try {
-    const databaseId = process.env.NOTION_PROJECTS_DATABASE_ID;
-    if (!databaseId) {
-      throw new Error('NOTION_PROJECTS_DATABASE_ID not configured');
-    }
+    const databaseId = getProjectsDatabaseId();
     
-    const response = await notion.databases.query({
-      database_id: databaseId
-    });
-    const phases = await Promise.all(
-      response.results.map(async (page, index) => {
-        const notionPage = page as NotionPage;
-        const properties = notionPage.properties;
-        // Extract phase number from title (e.g., "Phase 1: Quick Wins" -> 1)
-        const title = properties['Project name']?.['title']?.[0]?.plain_text || '';
-        const phaseMatch = title.match(/Phase (\d+):/);
-        const phaseNumber = phaseMatch ? parseInt(phaseMatch[1]) : index + 1;
-        
-        // Extract title and tagline
-        const tagline = title.split(':')[1]?.trim() || '';
-        
-        return {
-          id: notionPage.id,
-          phase: phaseNumber,
-          title: title,
-          tagline: tagline,
-          status: statusMap[properties.Status?.select?.name as keyof typeof statusMap || 'Not Started'] || 'pending',
-          startDate: properties.Dates?.date?.start || '',
-          endDate: properties.Dates?.date?.end || '',
-          critical: title.toLowerCase().includes('critical') || false,
-        };
+    // Fetch all pages with pagination
+    const allResults = await paginateResults(async (cursor) => 
+      notion.databases.query({
+        database_id: databaseId,
+        start_cursor: cursor,
+        page_size: 100
       })
     );
+    
+    const phases = allResults.map((page, index) => {
+      const notionPage = page as NotionPage;
+      const properties = notionPage.properties;
+      
+      // Extract phase number from title (e.g., "Phase 1: Quick Wins" -> 1)
+      const title = extractPlainText(properties['Project name']?.title);
+      const phaseMatch = title.match(/Phase (\d+):/);
+      const phaseNumber = phaseMatch ? parseInt(phaseMatch[1]) : index + 1;
+      
+      // Extract title and tagline
+      const tagline = title.split(':')[1]?.trim() || '';
+      
+      return {
+        id: notionPage.id,
+        phase: phaseNumber,
+        title: title,
+        tagline: tagline,
+        status: NOTION_TO_STATUS[properties.Status?.select?.name as keyof typeof NOTION_TO_STATUS] || 'pending',
+        startDate: properties.Dates?.date?.start || '',
+        endDate: properties.Dates?.date?.end || '',
+        critical: title.toLowerCase().includes('critical') || false,
+      };
+    });
     
     // Sort phases by phase number
     phases.sort((a, b) => a.phase - b.phase);
@@ -237,25 +264,23 @@ export async function fetchPhases() {
 }
 
 // Fetch detailed phase content including page blocks
-export async function fetchPhaseContent(phaseId: string) {
+export async function fetchPhaseContent(phaseId: string): Promise<PhaseContent> {
   const cacheKey = `phase-${phaseId}`;
-  const cached = getCached<{
-    about?: string;
-    painPoints?: string[];
-    outcomes?: string[];
-    requirements?: string[];
-  }>(cacheKey);
+  const cached = getCached<PhaseContent>(cacheKey);
   if (cached) return cached;
   
   try {
-    // Get the page blocks
-    const blocks = await notion.blocks.children.list({
-      block_id: phaseId,
-      page_size: 100,
-    });
+    // Get all page blocks with pagination
+    const allBlocks = await paginateResults(async (cursor) =>
+      notion.blocks.children.list({
+        block_id: phaseId,
+        start_cursor: cursor,
+        page_size: 100,
+      })
+    );
     
     // Parse the blocks into structured content
-    const content = parsePageContent(blocks.results as NotionBlock[]);
+    const content = parsePageContent(allBlocks as NotionBlock[]);
     
     setCache(cacheKey, content);
     return content;
@@ -265,51 +290,71 @@ export async function fetchPhaseContent(phaseId: string) {
   }
 }
 
-// Fetch tasks for a specific phase
-export async function fetchPhaseTasks(phaseId: string) {
-  const cacheKey = `tasks-${phaseId}`;
-  const cached = getCached<Array<{
-    id: string;
-    name: string;
-    status: string;
-    dueDate: string;
-    tags: string[];
-  }>>(cacheKey);
+// Fetch all tasks from the database (optimized approach)
+export async function fetchAllTasks(): Promise<Task[]> {
+  const cacheKey = 'all-tasks';
+  const cached = getCached<Task[]>(cacheKey);
   if (cached) return cached;
   
   try {
-    const databaseId = process.env.NOTION_TASKS_DATABASE_ID;
-    if (!databaseId) {
-      throw new Error('NOTION_TASKS_DATABASE_ID not configured');
-    }
+    const databaseId = getTasksDatabaseId();
     
-    const response = await notion.databases.query({
-      database_id: databaseId,
-      filter: {
-        property: 'Project',
-        relation: {
-          contains: phaseId
-        }
-      }
-    });
+    // Fetch all pages with pagination
+    const allResults = await paginateResults(async (cursor) =>
+      notion.databases.query({
+        database_id: databaseId,
+        start_cursor: cursor,
+        page_size: 100
+      })
+    );
     
-    const tasks = response.results.map((task) => {
+    const tasks = allResults.map((task) => {
       const notionTask = task as NotionTask;
       const properties = notionTask.properties;
       
+      // Extract project relation IDs
+      const projectIds = properties.Project?.relation?.map(rel => rel.id).filter(Boolean) || [];
+
       return {
         id: notionTask.id,
-        name: properties['Task name']?.title?.[0]?.plain_text || '',
-        status: statusMap[properties.Status?.select?.name as keyof typeof statusMap || 'Not Started'] || 'pending',
+        name: extractPlainText(properties['Task name']?.title),
+        status: NOTION_TO_STATUS[properties.Status?.select?.name as keyof typeof NOTION_TO_STATUS] || 'pending',
         dueDate: properties.Due?.date?.start || '',
         tags: properties.Tags?.multi_select?.map((tag) => tag.name) || [],
+        projectIds,
       };
     });
+    
+    console.log(`Fetched ${tasks.length} tasks total`);
     
     setCache(cacheKey, tasks);
     return tasks;
   } catch (error) {
-    console.error('Error fetching tasks:', error);
+    console.error('Error fetching all tasks:', error);
+    throw error;
+  }
+}
+
+// Fetch tasks for a specific phase (now filters from cached data)
+export async function fetchPhaseTasks(phaseId: string) {
+  try {
+    const allTasks = await fetchAllTasks();
+    
+    // Filter tasks that belong to this phase
+    const phaseTasks = allTasks.filter(task => 
+      task.projectIds.includes(phaseId)
+    );
+    
+    // Return simplified format (without projectIds for backward compatibility)
+    return phaseTasks.map(task => ({
+      id: task.id,
+      name: task.name,
+      status: task.status,
+      dueDate: task.dueDate,
+      tags: task.tags,
+    }));
+  } catch (error) {
+    console.error('Error fetching phase tasks:', error);
     throw error;
   }
 }
@@ -321,4 +366,35 @@ export function refreshCache(key?: string) {
   } else {
     cache.clear();
   }
-} 
+}
+
+// Clear cache related to a specific phase
+export function refreshPhaseCache(phaseId: string) {
+  cache.delete('phases');
+  cache.delete(`phase-${phaseId}`);
+  cache.delete('all-tasks'); // Clear all tasks cache since we now fetch all at once
+}
+
+// Clear all tasks cache (useful for when tasks are updated)
+export function refreshTasksCache() {
+  cache.delete('all-tasks');
+}
+
+// Helper function to filter tasks by phase ID (for client-side use)
+export function filterTasksByPhase(
+  allTasks: Task[],
+  phaseId: string
+) {
+  return allTasks
+    .filter(task => task.projectIds.includes(phaseId))
+    .map(task => ({
+      id: task.id,
+      name: task.name,
+      status: task.status,
+      dueDate: task.dueDate,
+      tags: task.tags,
+    }));
+}
+
+// Re-export status map for backward compatibility
+export const statusMap = NOTION_TO_STATUS; 
