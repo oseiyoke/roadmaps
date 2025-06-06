@@ -30,6 +30,21 @@ export const Roadmap: React.FC = () => {
   const [milestonePositions, setMilestonePositions] = useState<MilestoneType[]>([]);
   const [taskDotPositions, setTaskDotPositions] = useState<TaskDot[]>([]);
   const [launchPosition, setLaunchPosition] = useState<{ x: number; y: number } | null>(null);
+  const [viewportDimensions, setViewportDimensions] = useState({ width: 1920, height: 1080 });
+
+  // Update viewport dimensions on mount and resize
+  useEffect(() => {
+    const updateDimensions = () => {
+      setViewportDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
 
   // Derive current position from the last in-progress task dot
   const currentDot = useMemo(() => {
@@ -48,7 +63,7 @@ export const Roadmap: React.FC = () => {
     console.log("phases in roadmap", phases);
     // Milestone positions
     const milestonePos = phases.map((phase, i) => {
-      const t = phases.length > 1 ? i / (phases.length - 1) : 0;
+      const t = phases.length > 0 ? i / phases.length : 0;
       const { x, y } = pathEl.getPointAtLength(totalLength * t);
       const data = phaseData[phase];
       const status: MilestoneType['status'] = data.tasks.every(task => task.status === 'completed')
@@ -65,8 +80,8 @@ export const Roadmap: React.FC = () => {
     phases.forEach((phase, pi) => {
       const tasks = phaseData[phase].tasks;
       const M = tasks.length;
-      const segmentStart = phases.length > 1 ? (pi / (phases.length - 1)) * totalLength : 0;
-      const segmentLen = phases.length > 1 ? totalLength / (phases.length - 1) : 0;
+      const segmentStart = phases.length > 0 ? (pi / phases.length) * totalLength : 0;
+      const segmentLen = phases.length > 0 ? totalLength / phases.length : 0;
       tasks.forEach((task, ki) => {
         const frac = (ki + 1) / (M + 1);
         const pos = pathEl.getPointAtLength(segmentStart + segmentLen * frac);
@@ -154,6 +169,9 @@ export const Roadmap: React.FC = () => {
       const landscapeMid = document.querySelector('.landscape-layer-mid') as HTMLElement;
       const landscapeNear = document.querySelector('.landscape-layer-near') as HTMLElement;
       const landscapeAccent = document.querySelector('.landscape-layer-accent') as HTMLElement;
+      const cloudsFar = document.querySelector('.clouds-far') as HTMLElement;
+      const cloudsMid = document.querySelector('.clouds-mid') as HTMLElement;
+      const cloudsNear = document.querySelector('.clouds-near') as HTMLElement;
       
       if (terrainBg) {
         terrainBg.style.transform = `translateX(${-scrollLeft * 0.3}px)`;
@@ -173,6 +191,16 @@ export const Roadmap: React.FC = () => {
       }
       if (landscapeAccent) {
         landscapeAccent.style.transform = `translateX(${-scrollLeft * 0.55}px)`;
+      }
+      // Cloud layers with different parallax speeds
+      if (cloudsFar) {
+        cloudsFar.style.transform = `translateX(${-scrollLeft * 0.1}px)`;
+      }
+      if (cloudsMid) {
+        cloudsMid.style.transform = `translateX(${-scrollLeft * 0.15}px)`;
+      }
+      if (cloudsNear) {
+        cloudsNear.style.transform = `translateX(${-scrollLeft * 0.25}px)`;
       }
     };
 
@@ -229,9 +257,9 @@ export const Roadmap: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-400/30 via-green-400/20 to-yellow-400/10" />
       </div>
       
-      {/* Landscape Background */}
+      {/* Landscape Background - now covers entire viewport */}
       <div className="landscape-container fixed inset-0 pointer-events-none">
-        <LandscapeBackground width={3800} height={700} />
+        <LandscapeBackground width={viewportDimensions.width} height={viewportDimensions.height} />
       </div>
       
       <div className="pattern-bg fixed inset-0 opacity-[0.02] pointer-events-none">
@@ -246,7 +274,7 @@ export const Roadmap: React.FC = () => {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-30 px-6 py-4 text-center justify-center">
         <div className="flex items-center justify-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-900">CTM Platform Development</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Seamless Roadmap</h1>
           <button
             onClick={refresh}
             className="p-2 text-gray-600 hover:text-gray-900 transition-colors"

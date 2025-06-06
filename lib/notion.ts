@@ -200,8 +200,6 @@ export async function fetchPhases() {
     const response = await notion.databases.query({
       database_id: databaseId
     });
-    console.log("response", response);
-    
     const phases = await Promise.all(
       response.results.map(async (page, index) => {
         const notionPage = page as NotionPage;
@@ -231,8 +229,6 @@ export async function fetchPhases() {
     phases.sort((a, b) => a.phase - b.phase);
     
     setCache(cacheKey, phases);
-    console.log("*****************");
-    console.log("phases", phases);
     return phases;
   } catch (error) {
     console.error('Error fetching phases:', error);
