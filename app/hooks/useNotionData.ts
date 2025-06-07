@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { PhaseData } from '@/app/types/roadmap';
 import { filterTasksByPhase } from '@/lib/notion';
+import { RoadmapConfigContext } from '@/app/components/roadmap/RoadmapViewer';
 
 interface NotionPhase {
   id: string;
@@ -48,6 +49,9 @@ export function useNotionData() {
   const [phaseData, setPhaseData] = useState<Record<number, PhaseData>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get config from context - will be null if not inside RoadmapViewer
+  const roadmapConfig = useContext(RoadmapConfigContext);
 
   // Fetch phases and tasks on mount
   useEffect(() => {
@@ -59,8 +63,20 @@ export function useNotionData() {
       setLoading(true);
       setError(null);
 
+      // Prepare headers with roadmap config
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (roadmapConfig) {
+        headers['x-roadmap-config'] = JSON.stringify(roadmapConfig);
+      }
+
       // Fetch both phases (with content) and tasks in one request
-      const response = await fetch('/api/notion/phases-with-tasks');
+      const response = await fetch('/api/notion/phases-with-tasks', {
+        headers
+      });
+      
       if (!response.ok) throw new Error('Failed to fetch roadmap data');
       const data: RoadmapData = await response.json();
 

@@ -81,7 +81,7 @@ export const Roadmap: React.FC = () => {
 
   // Calculate dimensions
   const roadmapWidth = 3600 * zoom;
-  const roadmapHeight = viewportDimensions.height - 80;
+  const roadmapHeight = viewportDimensions.height - 48;
 
   return (
     <>
@@ -89,7 +89,7 @@ export const Roadmap: React.FC = () => {
 
       <div 
         ref={containerRef}
-        className={`relative z-10 w-full h-screen overflow-x-auto overflow-y-hidden pt-20 ${animationsPaused ? 'animations-paused' : ''}`}
+        className={`relative z-10 w-full h-screen overflow-x-auto overflow-y-hidden pt-12 ${animationsPaused ? 'animations-paused' : ''}`}
       >
         <RoadmapBackground 
           width={roadmapWidth} 
@@ -101,8 +101,8 @@ export const Roadmap: React.FC = () => {
           style={{ 
             width: `${roadmapWidth}px`,
             minWidth: `${roadmapWidth}px`,
-            height: `calc(100vh - 80px)`,
-            minHeight: `calc(100vh - 80px)`
+            height: `calc(100vh - 48px)`,
+            minHeight: `calc(100vh - 48px)`
           }}
         >
           <RoadmapSVG

@@ -13,8 +13,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Roadmap Journey - CTM Platform Development",
-  description: "Interactive roadmap for CTM Platform Development with milestones, tasks, and progress tracking",
+  title: "Roadmap Visualizer - Transform Notion Roadmaps into Beautiful Visualizations",
+  description: "Connect your Notion databases and watch your project roadmaps come to life with interactive, real-time visualizations that keep everyone aligned.",
+  keywords: "roadmap, visualization, notion, project management, timeline, milestone tracker",
+  authors: [{ name: "Roadmap Visualizer Team" }],
+  openGraph: {
+    title: "Roadmap Visualizer",
+    description: "Transform your Notion roadmaps into beautiful visualizations",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

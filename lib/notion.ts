@@ -1,4 +1,12 @@
-import { notion, NOTION_TO_STATUS, getProjectsDatabaseId, getTasksDatabaseId } from './notion-client';
+import { Client } from '@notionhq/client';
+import { NOTION_TO_STATUS, getProjectsDatabaseId, getTasksDatabaseId } from './notion-client';
+
+// Create a new client for each request to pick up dynamic env vars
+function createNotionClient() {
+  return new Client({
+    auth: process.env.NOTION_API_TOKEN!,
+  });
+}
 
 // Cache configuration
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -189,6 +197,7 @@ export async function fetchPhases(): Promise<Phase[]> {
   if (cached) return cached;
   
   try {
+    const notion = createNotionClient();
     const databaseId = getProjectsDatabaseId();
     
     // Fetch all pages with pagination
@@ -265,6 +274,8 @@ export async function fetchPhaseContent(phaseId: string): Promise<PhaseContent> 
   if (cached) return cached;
   
   try {
+    const notion = createNotionClient();
+    
     // Get all page blocks with pagination
     const allBlocks = await paginateResults(async (cursor) =>
       notion.blocks.children.list({
@@ -292,6 +303,7 @@ export async function fetchAllTasks(): Promise<Task[]> {
   if (cached) return cached;
   
   try {
+    const notion = createNotionClient();
     const databaseId = getTasksDatabaseId();
     
     // Fetch all pages with pagination, sorted by Due date ascending

@@ -9,8 +9,8 @@ export function errorResponse(message: string, status: number = 500) {
 }
 
 // Standard success response
-export function successResponse(data: unknown = { success: true }) {
-  return NextResponse.json(data);
+export function successResponse(data: unknown, status = 200) {
+  return NextResponse.json(data, { status });
 }
 
 // Wrap async route handlers with error handling
@@ -38,4 +38,16 @@ export function validateRequired(
     valid: missing.length === 0,
     missing: missing.length > 0 ? missing : undefined
   };
+}
+
+export function getRoadmapConfig(request: Request) {
+  const configHeader = request.headers.get('x-roadmap-config');
+  if (configHeader) {
+    try {
+      return JSON.parse(configHeader);
+    } catch (e) {
+      console.error('Failed to parse roadmap config header:', e);
+    }
+  }
+  return null;
 } 
