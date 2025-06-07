@@ -6,6 +6,7 @@ export interface Task {
 export interface PhaseData {
   title: string;
   tagline: string;
+  status: string;
   startDate: string;
   endDate: string;
   critical: boolean;

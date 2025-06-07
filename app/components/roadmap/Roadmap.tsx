@@ -31,7 +31,11 @@ export const Roadmap: React.FC = () => {
   const [taskDotPositions, setTaskDotPositions] = useState<TaskDot[]>([]);
   const [launchPosition, setLaunchPosition] = useState<{ x: number; y: number } | null>(null);
   const [viewportDimensions, setViewportDimensions] = useState({ width: 1920, height: 1080 });
-
+  // Calculate dynamic background width for scrolling
+  const circleRadius = 25;
+  const svgEndMargin = circleRadius * 2;
+  const lastPointX = roadmapCurvePoints[roadmapCurvePoints.length - 1].x;
+  const svgWidth = lastPointX + svgEndMargin;
   // Update viewport dimensions on mount and resize
   useEffect(() => {
     const updateDimensions = () => {
@@ -61,30 +65,74 @@ export const Roadmap: React.FC = () => {
       .sort((a, b) => a - b);
 
     console.log("phases in roadmap", phases);
-    // Milestone positions
+    // Compute segment ratios based on task counts with a floor to ensure minimum spacing
+    const taskCounts = phases.map(p => phaseData[p].tasks.length);
+    const totalTasksCount = taskCounts.reduce((sum, c) => sum + c, 0) || 1;
+    // Default equal share per phase
+    const defaultRatio = 1 / phases.length;
+    // Minimum ratio floor (e.g., half of equal spacing)
+    const minRatio = defaultRatio * 0.5;
+    // Raw ratios from task counts
+    const rawRatios = taskCounts.map(c => c / totalTasksCount);
+    // Apply minimum floor and normalize
+    const adjusted = rawRatios.map(r => Math.max(r, minRatio));
+    const sumAdjusted = adjusted.reduce((sum, r) => sum + r, 0) || 1;
+    const ratios = adjusted.map(r => r / sumAdjusted);
+    // Compute cumulative start ratios
+    const cumulativeRatios: number[] = [];
+    ratios.reduce((acc, r, idx) => { cumulativeRatios[idx] = acc; return acc + r; }, 0);
+
+    // Add padding between phases to improve spacing
+    const margin = circleRadius * 2;
+    const effectiveLength = totalLength - margin * (phases.length - 1);
+
+    // Milestone positions at segment starts
     const milestonePos = phases.map((phase, i) => {
-      const t = phases.length > 0 ? i / phases.length : 0;
-      const { x, y } = pathEl.getPointAtLength(totalLength * t);
+      const startLen = (cumulativeRatios[i] * effectiveLength) + (margin * i);
+      const { x, y } = pathEl.getPointAtLength(startLen);
       const data = phaseData[phase];
-      const status: MilestoneType['status'] = data.tasks.every(task => task.status === 'completed')
-        ? 'completed'
-        : data.tasks.some(task => task.status === 'in-progress')
-        ? 'in-progress'
-        : 'pending';
+      const status: MilestoneType['status'] = phaseData[phase].status as MilestoneType['status']
+      
       return { id: phase, x, y, phase, status, critical: data.critical };
     });
     setMilestonePositions(milestonePos);
 
     // Task dot positions
     const dots: TaskDot[] = [];
+    const milestonePositions: { x: number; y: number }[] = [];
+    
+    // First, calculate milestone positions for collision detection
+    phases.forEach((phase, pi) => {
+      const startLen = (cumulativeRatios[pi] * effectiveLength) + (margin * pi);
+      const { x, y } = pathEl.getPointAtLength(startLen);
+      milestonePositions.push({ x, y });
+    });
+    
     phases.forEach((phase, pi) => {
       const tasks = phaseData[phase].tasks;
       const M = tasks.length;
-      const segmentStart = phases.length > 0 ? (pi / phases.length) * totalLength : 0;
-      const segmentLen = phases.length > 0 ? totalLength / phases.length : 0;
+      const segmentStart = cumulativeRatios[pi] * effectiveLength + margin * pi;
+      const segmentLen = ratios[pi] * effectiveLength;
+      const milestonePos = milestonePositions[pi];
+      const milestoneRadius = circleRadius + 5; // Add buffer around milestone
+      
       tasks.forEach((task, ki) => {
         const frac = (ki + 1) / (M + 1);
-        const pos = pathEl.getPointAtLength(segmentStart + segmentLen * frac);
+        let pos = pathEl.getPointAtLength(segmentStart + segmentLen * frac);
+        
+        // Check if task dot would overlap with milestone and adjust position
+        const distanceToMilestone = Math.sqrt(
+          Math.pow(pos.x - milestonePos.x, 2) + Math.pow(pos.y - milestonePos.y, 2)
+        );
+        
+        // If too close to milestone, move it further along the path
+        if (distanceToMilestone < milestoneRadius) {
+          const adjustedFrac = frac + 0.15; // Move 15% further along the segment
+          if (adjustedFrac <= 1) {
+            pos = pathEl.getPointAtLength(segmentStart + segmentLen * adjustedFrac);
+          }
+        }
+        
         dots.push({ x: pos.x, y: pos.y, status: task.status });
       });
     });
@@ -257,11 +305,6 @@ export const Roadmap: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-400/30 via-green-400/20 to-yellow-400/10" />
       </div>
       
-      {/* Landscape Background - now covers entire viewport */}
-      <div className="landscape-container fixed inset-0 pointer-events-none">
-        <LandscapeBackground width={viewportDimensions.width} height={viewportDimensions.height} />
-      </div>
-      
       <div className="pattern-bg fixed inset-0 opacity-[0.02] pointer-events-none">
         <div className="absolute inset-0" style={{
           backgroundImage: `
@@ -292,7 +335,11 @@ export const Roadmap: React.FC = () => {
         ref={containerRef}
         className="relative z-10 w-full h-screen overflow-x-auto overflow-y-hidden pt-20"
       >
-        <div className="relative min-w-max h-full px-16 py-8">
+        <div className="relative min-w-max h-full px-16">
+          {/* Landscape Background - scrollable parallax */}
+          <div className="landscape-container absolute inset-0 pointer-events-none">
+            <LandscapeBackground width={svgWidth} height={viewportDimensions.height} />
+          </div>
           <svg 
             ref={svgRef}
             className="roadmap-svg" 
@@ -302,7 +349,6 @@ export const Roadmap: React.FC = () => {
             style={{ transform: `scale(${zoom})`, transformOrigin: 'left center' }}
           >
             <RoadmapPath ref={pathRef} points={roadmapCurvePoints} />
-            <TaskDots taskDots={taskDotPositions} />
             
             {/* Milestones */}
             {milestonePositions.map(milestone => (
@@ -318,6 +364,9 @@ export const Roadmap: React.FC = () => {
                 onMouseLeave={() => setTooltipData(prev => ({ ...prev, show: false }))}
               />
             ))}
+            
+            {/* Task dots rendered after milestones so they appear on top */}
+            <TaskDots taskDots={taskDotPositions} />
             
             {/* Current Position (last in-progress task) */}
             {currentDot && (

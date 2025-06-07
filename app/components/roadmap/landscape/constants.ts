@@ -1,5 +1,5 @@
 export const LANDSCAPE_DIMENSIONS = {
-  width: 3800,
+  width: 4500,
   height: 1000,
 } as const;
 
@@ -40,6 +40,12 @@ export const COLOR_PALETTE = {
 } as const;
 
 export const LAYER_CONFIG = {
+  veryFarHills: {
+    baseY: 0.25,
+    amplitude: 300,
+    opacity: 0.7,
+    treeSpacing: 200,
+  },
   farHills: {
     baseY: 0.35,
     amplitude: 250,
@@ -52,29 +58,41 @@ export const LAYER_CONFIG = {
     opacity: 0.95,
     treeSpacing: 100,
   },
+  midNearHills: {
+    baseY: 0.6,
+    amplitude: 175,
+    opacity: 0.97,
+    treeSpacing: 75,
+  },
   nearHills: {
     baseY: 0.7,
     amplitude: 150,
     opacity: 1,
     treeSpacing: 50,
   },
+  veryNearHills: {
+    baseY: 0.8,
+    amplitude: 120,
+    opacity: 1,
+    treeSpacing: 30,
+  },
 } as const;
 
 export const CLOUD_CONFIG = {
   far: {
-    count: 8,
+    count: 18,
     yRange: { min: 50, max: 200 },
     scaleRange: { min: 0.5, max: 0.8 },
     opacityRange: { min: 0.2, max: 0.3 },
   },
   mid: {
-    count: 6,
+    count: 14,
     yRange: { min: 100, max: 300 },
     scaleRange: { min: 0.7, max: 1.1 },
     opacityRange: { min: 0.3, max: 0.5 },
   },
   near: {
-    count: 4,
+    count: 10,
     yRange: { min: 150, max: 400 },
     scaleRange: { min: 0.9, max: 1.4 },
     opacityRange: { min: 0.4, max: 0.6 },

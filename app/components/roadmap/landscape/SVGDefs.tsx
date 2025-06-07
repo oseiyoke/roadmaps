@@ -11,6 +11,11 @@ export const SVGDefs: React.FC = () => {
   return (
     <defs>
       {/* Hill gradients for each layer */}
+      <linearGradient id="veryFarHillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor={terrain.farHills.primary} stopOpacity="0.4" />
+        <stop offset="100%" stopColor={terrain.farHills.secondary} stopOpacity="0.2" />
+      </linearGradient>
+      
       <linearGradient id="farHillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stopColor={terrain.farHills.primary} stopOpacity="0.6" />
         <stop offset="100%" stopColor={terrain.farHills.secondary} stopOpacity="0.3" />
@@ -21,9 +26,19 @@ export const SVGDefs: React.FC = () => {
         <stop offset="100%" stopColor={terrain.midHills.secondary} stopOpacity="0.4" />
       </linearGradient>
       
+      <linearGradient id="midNearHillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor={terrain.midHills.primary} stopOpacity="0.75" />
+        <stop offset="100%" stopColor={terrain.midHills.secondary} stopOpacity="0.45" />
+      </linearGradient>
+      
       <linearGradient id="nearHillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stopColor={terrain.nearHills.primary} stopOpacity="0.8" />
         <stop offset="100%" stopColor={terrain.nearHills.secondary} stopOpacity="0.5" />
+      </linearGradient>
+
+      <linearGradient id="veryNearHillGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor={terrain.nearHills.primary} stopOpacity="0.9" />
+        <stop offset="100%" stopColor={terrain.nearHills.secondary} stopOpacity="0.6" />
       </linearGradient>
 
       {/* Atmospheric overlay gradient */}

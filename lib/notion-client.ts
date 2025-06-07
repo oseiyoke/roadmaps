@@ -17,6 +17,7 @@ export const NOTION_TO_STATUS = {
   'In Progress': 'in-progress',
   'Done': 'completed',
   'Not Started': 'pending',
+  'Backlog': 'pending',
   'Complete': 'completed',
 } as const;
 

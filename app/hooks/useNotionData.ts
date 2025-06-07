@@ -67,10 +67,14 @@ export function useNotionData() {
 
         // Filter tasks for this phase
         const phaseTasks = filterTasksByPhase(data.tasks, phase.id);
+        console.log(
+          "phase.status", phase.status
+        )
 
         phaseDataMap[phase.phase] = {
           title: phase.title,
           tagline: phase.tagline,
+          status: phase.status,
           startDate: formatDate(phase.startDate),
           endDate: formatDate(phase.endDate),
           critical: phase.critical,

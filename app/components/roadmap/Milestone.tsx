@@ -22,20 +22,14 @@ export const Milestone: React.FC<MilestoneProps> = ({
     const baseClasses = "transition-all duration-300 cursor-pointer";
     
     if (milestone.status === 'completed') {
-      return milestone.critical 
-        ? `${baseClasses} fill-yellow-400 stroke-green-500` 
-        : `${baseClasses} fill-green-500 stroke-green-500`;
+        return `${baseClasses} fill-green-500 stroke-green-500`;
     }
     
     if (milestone.status === 'in-progress') {
-      return milestone.critical 
-        ? `${baseClasses} fill-yellow-400 stroke-orange-500` 
-        : `${baseClasses} fill-orange-500 stroke-orange-500`;
+      return `${baseClasses} fill-orange-500 stroke-orange-500`;
     }
     
-    return milestone.critical 
-      ? `${baseClasses} fill-white stroke-gray-300` 
-      : `${baseClasses} fill-white stroke-gray-300`;
+    return `${baseClasses} fill-white stroke-gray-300`;
   };
 
   const radius = 25;

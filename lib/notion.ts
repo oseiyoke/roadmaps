@@ -30,7 +30,7 @@ interface NotionPage {
   id: string;
   properties: {
     'Project name'?: { title: Array<{ plain_text: string }> };
-    Status?: { select?: { name: string } };
+    Status?: { status?: { name: string } };
     Dates?: { date?: { start: string; end: string } };
     [key: string]: unknown;
   };
@@ -40,17 +40,11 @@ interface NotionTask {
   id: string;
   properties: {
     'Task name'?: { title: Array<{ plain_text: string }> };
-    Status?: { select?: { name: string } };
+    Status?: { status?: { name: string } };
     Due?: { date?: { start: string } };
     Tags?: { multi_select?: Array<{ name: string }> };
     Project?: { relation?: Array<{ id: string }> };
   };
-}
-
-interface NotionDatabase {
-  id: string;
-  title?: Array<{ plain_text: string }>;
-  url: string;
 }
 
 export interface Phase {
@@ -101,40 +95,6 @@ async function paginateResults<T>(
   }
   
   return allResults;
-}
-
-// Discover database IDs from a shared page URL
-export async function discoverDatabaseIds(pageUrl: string) {
-  try {
-    // Extract page ID from URL
-    const pageId = pageUrl.split('-').pop()?.split('?')[0] || '';
-    
-    // Get the page (just to verify it exists)
-    await notion.pages.retrieve({ page_id: pageId });
-    
-    // Search for databases in the workspace that might be related
-    const databases = await notion.search({
-      filter: {
-        property: 'object',
-        value: 'database'
-      }
-    });
-    
-    return {
-      pageId,
-      databases: databases.results.map((db) => {
-        const database = db as NotionDatabase;
-        return {
-          id: database.id,
-          title: database.title?.[0]?.plain_text || 'Untitled',
-          url: database.url
-        };
-      })
-    };
-  } catch (error) {
-    console.error('Error discovering databases:', error);
-    throw error;
-  }
 }
 
 // Parse Notion blocks into structured content
@@ -224,7 +184,14 @@ export async function fetchPhases(): Promise<Phase[]> {
       notion.databases.query({
         database_id: databaseId,
         start_cursor: cursor,
-        page_size: 100
+        page_size: 100,
+        sorts: [
+          {
+            property: 'Dates',
+            timestamp: 'created_time',
+            direction: 'ascending',
+          },
+        ]
       })
     );
     
@@ -239,21 +206,25 @@ export async function fetchPhases(): Promise<Phase[]> {
       
       // Extract title and tagline
       const tagline = title.split(':')[1]?.trim() || '';
-      
+
       return {
         id: notionPage.id,
         phase: phaseNumber,
         title: title,
         tagline: tagline,
-        status: NOTION_TO_STATUS[properties.Status?.select?.name as keyof typeof NOTION_TO_STATUS] || 'pending',
+        status: NOTION_TO_STATUS[properties.Status?.status?.name as keyof typeof NOTION_TO_STATUS] || 'pending',
         startDate: properties.Dates?.date?.start || '',
         endDate: properties.Dates?.date?.end || '',
         critical: title.toLowerCase().includes('critical') || false,
       };
     });
     
-    // Sort phases by phase number
-    phases.sort((a, b) => a.phase - b.phase);
+    // Sort phases by startDate ascending (fallback to phase number if invalid)
+    phases.sort((a, b) => {
+      const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+      const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
+      return (dateA - dateB) || (a.phase - b.phase);
+    });
     
     setCache(cacheKey, phases);
     return phases;
@@ -299,12 +270,15 @@ export async function fetchAllTasks(): Promise<Task[]> {
   try {
     const databaseId = getTasksDatabaseId();
     
-    // Fetch all pages with pagination
+    // Fetch all pages with pagination, sorted by Due date ascending
     const allResults = await paginateResults(async (cursor) =>
       notion.databases.query({
         database_id: databaseId,
         start_cursor: cursor,
-        page_size: 100
+        page_size: 100,
+        sorts: [
+          { property: 'Due', direction: 'ascending' }
+        ]
       })
     );
     
@@ -318,43 +292,17 @@ export async function fetchAllTasks(): Promise<Task[]> {
       return {
         id: notionTask.id,
         name: extractPlainText(properties['Task name']?.title),
-        status: NOTION_TO_STATUS[properties.Status?.select?.name as keyof typeof NOTION_TO_STATUS] || 'pending',
+        status: NOTION_TO_STATUS[properties.Status?.status?.name as keyof typeof NOTION_TO_STATUS] || 'pending',
         dueDate: properties.Due?.date?.start || '',
         tags: properties.Tags?.multi_select?.map((tag) => tag.name) || [],
         projectIds,
       };
     });
     
-    console.log(`Fetched ${tasks.length} tasks total`);
-    
     setCache(cacheKey, tasks);
     return tasks;
   } catch (error) {
     console.error('Error fetching all tasks:', error);
-    throw error;
-  }
-}
-
-// Fetch tasks for a specific phase (now filters from cached data)
-export async function fetchPhaseTasks(phaseId: string) {
-  try {
-    const allTasks = await fetchAllTasks();
-    
-    // Filter tasks that belong to this phase
-    const phaseTasks = allTasks.filter(task => 
-      task.projectIds.includes(phaseId)
-    );
-    
-    // Return simplified format (without projectIds for backward compatibility)
-    return phaseTasks.map(task => ({
-      id: task.id,
-      name: task.name,
-      status: task.status,
-      dueDate: task.dueDate,
-      tags: task.tags,
-    }));
-  } catch (error) {
-    console.error('Error fetching phase tasks:', error);
     throw error;
   }
 }
