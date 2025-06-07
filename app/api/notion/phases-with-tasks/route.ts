@@ -57,7 +57,4 @@ export async function GET(request: Request) {
     console.error('Error fetching phases with tasks:', error);
     return errorResponse('Failed to fetch roadmap data');
   }
-}
-
-// Cache for 5 minutes at the edge
-export const revalidate = 300; 
+} 

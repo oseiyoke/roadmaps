@@ -17,6 +17,14 @@ function setCache(key: string, data: unknown) {
   cache.set(key, { data, timestamp: Date.now() });
 }
 
+// Generate roadmap-specific cache key
+function createCacheKey(config: NotionConfig, suffix: string): string {
+  // Use database IDs as unique identifiers for the roadmap
+  const projectsDbId = getProjectsDatabaseId(config);
+  const tasksDbId = getTasksDatabaseId(config);
+  return `${projectsDbId}-${tasksDbId}-${suffix}`;
+}
+
 // Type definitions
 interface NotionBlock {
   type: string;
@@ -261,7 +269,7 @@ export function parsePageContent(blocks: NotionBlock[]): PhaseContent {
 
 // Fetch all phases (projects) from Notion
 export async function fetchPhases(config: NotionConfig): Promise<Phase[]> {
-  const cacheKey = 'phases';
+  const cacheKey = createCacheKey(config, 'phases');
   const cached = getCached<Phase[]>(cacheKey);
   if (cached) return cached;
   
@@ -338,7 +346,7 @@ export async function fetchPhases(config: NotionConfig): Promise<Phase[]> {
 
 // Fetch detailed phase content including page blocks
 export async function fetchPhaseContent(phaseId: string, config: NotionConfig): Promise<PhaseContent> {
-  const cacheKey = `phase-${phaseId}`;
+  const cacheKey = createCacheKey(config, `phase-${phaseId}`);
   const cached = getCached<PhaseContent>(cacheKey);
   if (cached) return cached;
   
@@ -367,7 +375,7 @@ export async function fetchPhaseContent(phaseId: string, config: NotionConfig): 
 
 // Fetch all tasks from the database (optimized approach)
 export async function fetchAllTasks(config: NotionConfig): Promise<Task[]> {
-  const cacheKey = 'all-tasks';
+  const cacheKey = createCacheKey(config, 'all-tasks');
   const cached = getCached<Task[]>(cacheKey);
   if (cached) return cached;
   
@@ -421,16 +429,30 @@ export function refreshCache(key?: string) {
   }
 }
 
+// Clear all cache for a specific roadmap
+export function refreshRoadmapCache(config: NotionConfig) {
+  const projectsDbId = getProjectsDatabaseId(config);
+  const tasksDbId = getTasksDatabaseId(config);
+  const keyPrefix = `${projectsDbId}-${tasksDbId}`;
+  
+  // Delete all cache entries that start with this roadmap's prefix
+  for (const key of cache.keys()) {
+    if (key.startsWith(keyPrefix)) {
+      cache.delete(key);
+    }
+  }
+}
+
 // Clear cache related to a specific phase
-export function refreshPhaseCache(phaseId: string) {
-  cache.delete('phases');
-  cache.delete(`phase-${phaseId}`);
-  cache.delete('all-tasks'); // Clear all tasks cache since we now fetch all at once
+export function refreshPhaseCache(phaseId: string, config: NotionConfig) {
+  cache.delete(createCacheKey(config, 'phases'));
+  cache.delete(createCacheKey(config, `phase-${phaseId}`));
+  cache.delete(createCacheKey(config, 'all-tasks')); // Clear all tasks cache since we now fetch all at once
 }
 
 // Clear all tasks cache (useful for when tasks are updated)
-export function refreshTasksCache() {
-  cache.delete('all-tasks');
+export function refreshTasksCache(config: NotionConfig) {
+  cache.delete(createCacheKey(config, 'all-tasks'));
 }
 
 // Helper function to filter tasks by phase ID (for client-side use)

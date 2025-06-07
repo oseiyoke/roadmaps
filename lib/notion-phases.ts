@@ -31,6 +31,6 @@ export async function updatePhase(phaseId: string, updates: { title?: string; st
     properties
   });
 
-  refreshPhaseCache(phaseId);
+  refreshPhaseCache(phaseId, config);
   return response;
 } 
