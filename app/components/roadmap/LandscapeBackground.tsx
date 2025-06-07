@@ -17,25 +17,31 @@ import {
  * 
  * Renders a stylized landscape with layered hills, trees, and clouds.
  * Uses internal coordinate system for consistent scaling across different viewport sizes.
+ * Now designed to scroll with the roadmap for a seamless experience.
  * 
- * @param width - Viewport width
+ * @param width - Scroll container width (extends beyond viewport)
  * @param height - Viewport height
  */
 export const LandscapeBackground: React.FC<LandscapeBackgroundProps> = ({ width, height }) => {
-  const { width: internalWidth, height: internalHeight } = LANDSCAPE_DIMENSIONS;
+  // Use the full scroll width for landscape generation to avoid repetition
+  const landscapeWidth = Math.max(width, 5000); // Ensure minimum width for smooth scrolling
+  const { height: internalHeight } = LANDSCAPE_DIMENSIONS;
   
-  // Generate static data with memoization to prevent unnecessary re-renders
-  const hillLayers = useMemo(() => generateHillLayers(), []);
-  const trees = useMemo(() => generateTreesOnHills(hillLayers), [hillLayers]);
-  const clouds = useMemo(() => generateClouds(), []);
+  // Generate landscape data using the extended width for seamless scrolling
+  const hillLayers = useMemo(() => {
+    return generateHillLayers(landscapeWidth);
+  }, [landscapeWidth]);
+  
+  const trees = useMemo(() => generateTreesOnHills(hillLayers, landscapeWidth), [hillLayers, landscapeWidth]);
+  const clouds = useMemo(() => generateClouds(landscapeWidth), [landscapeWidth]);
 
   return (
     <svg
       className="landscape-background absolute inset-0 w-full h-full"
       width={width}
       height={height}
-      viewBox={`0 0 ${internalWidth} ${internalHeight}`}
-      preserveAspectRatio="xMidYMid slice"
+      viewBox={`0 0 ${landscapeWidth} ${internalHeight}`}
+      preserveAspectRatio="xMinYMid slice"
       style={{ width: '100%', height: '100%' }}
     >
       {/* SVG definitions for gradients and filters */}
@@ -43,10 +49,10 @@ export const LandscapeBackground: React.FC<LandscapeBackgroundProps> = ({ width,
 
       {/* Sky gradient background */}
       <rect
-        width={internalWidth}
+        width={landscapeWidth}
         height={internalHeight}
         fill="url(#skyGradient)"
-        opacity="0.8"
+        opacity="0.3"
       />
 
       {/* Cloud layers rendered in order for proper depth */}
@@ -66,10 +72,10 @@ export const LandscapeBackground: React.FC<LandscapeBackgroundProps> = ({ width,
 
       {/* Atmospheric overlay for depth and lighting */}
       <rect
-        width={internalWidth}
+        width={landscapeWidth}
         height={internalHeight}
         fill="url(#atmosphereGradient)"
-        opacity="0.7"
+        opacity="0.2"
       />
     </svg>
   );

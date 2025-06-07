@@ -4,6 +4,7 @@ export const phaseData: Record<number, PhaseData> = {
   1: {
     title: "Quick Wins & Foundation",
     tagline: "Get the basics running and show immediate value",
+    status: "in-progress",
     startDate: "June 9, 2025",
     endDate: "July 7, 2025",
     critical: false,
@@ -41,6 +42,7 @@ export const phaseData: Record<number, PhaseData> = {
   2: {
     title: "Data Unification",
     tagline: "Bring all scattered data into one place",
+    status: "pending",
     startDate: "July 8, 2025",
     endDate: "August 4, 2025",
     critical: true,
@@ -77,6 +79,7 @@ export const phaseData: Record<number, PhaseData> = {
   3: {
     title: "Real-Time Operations",
     tagline: "See everything as it happens",
+    status: "pending",
     startDate: "August 5, 2025",
     endDate: "September 1, 2025",
     critical: true,
@@ -113,6 +116,7 @@ export const phaseData: Record<number, PhaseData> = {
   4: {
     title: "Intelligent Automation",
     tagline: "Let the system handle routine tasks",
+    status: "pending",
     startDate: "September 2, 2025",
     endDate: "September 29, 2025",
     critical: false,
@@ -149,6 +153,7 @@ export const phaseData: Record<number, PhaseData> = {
   5: {
     title: "Advanced Intelligence",
     tagline: "Predict problems before they happen",
+    status: "pending",
     startDate: "September 30, 2025",
     endDate: "October 27, 2025",
     critical: true,
@@ -185,6 +190,7 @@ export const phaseData: Record<number, PhaseData> = {
   6: {
     title: "Seamless Integration",
     tagline: "Become the central nervous system",
+    status: "pending",
     startDate: "October 28, 2025",
     endDate: "November 24, 2025",
     critical: true,
@@ -221,6 +227,7 @@ export const phaseData: Record<number, PhaseData> = {
   7: {
     title: "Seamless Integration",
     tagline: "Become the central nervous system",
+    status: "pending",
     startDate: "October 28, 2025",
     endDate: "November 24, 2025",
     critical: true,

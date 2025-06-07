@@ -77,31 +77,40 @@ export const generateHillPath = (
 /**
  * Generates hill layer configuration
  */
-export const generateHillLayers = (): HillLayer[] => {
-  const { width, height } = LANDSCAPE_DIMENSIONS;
+export const generateHillLayers = (customWidth?: number): HillLayer[] => {
+  const { width: defaultWidth, height } = LANDSCAPE_DIMENSIONS;
+  const width = customWidth || defaultWidth;
   
+  // Generate point arrays that scale with width
+  const generateScaledPoints = (basePoints: Array<{xRatio: number, y: number}>) => {
+    return basePoints.map(point => ({
+      x: point.xRatio * width,
+      y: point.y
+    }));
+  };
+
   return [
     {
       id: 'very-far-hills',
       className: 'landscape-layer-very-far',
-      points: [
-        { x: 0, y: 0.35 },
-        { x: 300, y: 0.15 },
-        { x: 600, y: 0.5 },
-        { x: 900, y: 0.2 },
-        { x: 1200, y: 0.6 },
-        { x: 1500, y: 0.1 },
-        { x: 1800, y: 0.45 },
-        { x: 2100, y: 0.25 },
-        { x: 2400, y: 0.55 },
-        { x: 2700, y: 0.15 },
-        { x: 3000, y: 0.4 },
-        { x: 3300, y: 0.3 },
-        { x: 3600, y: 0.5 },
-        { x: 3900, y: 0.2 },
-        { x: 4200, y: 0.4 },
-        { x: width, y: 0.3 }
-      ],
+      points: generateScaledPoints([
+        { xRatio: 0, y: 0.35 },
+        { xRatio: 0.067, y: 0.15 },
+        { xRatio: 0.133, y: 0.5 },
+        { xRatio: 0.2, y: 0.2 },
+        { xRatio: 0.267, y: 0.6 },
+        { xRatio: 0.333, y: 0.1 },
+        { xRatio: 0.4, y: 0.45 },
+        { xRatio: 0.467, y: 0.25 },
+        { xRatio: 0.533, y: 0.55 },
+        { xRatio: 0.6, y: 0.15 },
+        { xRatio: 0.667, y: 0.4 },
+        { xRatio: 0.733, y: 0.3 },
+        { xRatio: 0.8, y: 0.5 },
+        { xRatio: 0.867, y: 0.2 },
+        { xRatio: 0.933, y: 0.4 },
+        { xRatio: 1.0, y: 0.3 }
+      ]),
       baseY: height * LAYER_CONFIG.veryFarHills.baseY,
       amplitude: LAYER_CONFIG.veryFarHills.amplitude * 1.5,
       fill: 'url(#veryFarHillGradient)',
@@ -110,31 +119,31 @@ export const generateHillLayers = (): HillLayer[] => {
     {
       id: 'far-hills',
       className: 'landscape-layer-far',
-      points: [
-        { x: 0, y: 0.3 },
-        { x: 200, y: 0.1 },
-        { x: 400, y: 0.45 },
-        { x: 600, y: 0.15 },
-        { x: 800, y: 0.55 },
-        { x: 1000, y: 0.05 },
-        { x: 1200, y: 0.4 },
-        { x: 1400, y: 0.1 },
-        { x: 1600, y: 0.5 },
-        { x: 1800, y: 0.2 },
-        { x: 2000, y: 0.45 },
-        { x: 2200, y: 0.15 },
-        { x: 2400, y: 0.6 },
-        { x: 2600, y: 0.1 },
-        { x: 2800, y: 0.4 },
-        { x: 3000, y: 0.2 },
-        { x: 3200, y: 0.5 },
-        { x: 3400, y: 0.15 },
-        { x: 3600, y: 0.45 },
-        { x: 3800, y: 0.25 },
-        { x: 4000, y: 0.35 },
-        { x: 4200, y: 0.15 },
-        { x: width, y: 0.35 }
-      ],
+      points: generateScaledPoints([
+        { xRatio: 0, y: 0.3 },
+        { xRatio: 0.044, y: 0.1 },
+        { xRatio: 0.089, y: 0.45 },
+        { xRatio: 0.133, y: 0.15 },
+        { xRatio: 0.178, y: 0.55 },
+        { xRatio: 0.222, y: 0.05 },
+        { xRatio: 0.267, y: 0.4 },
+        { xRatio: 0.311, y: 0.1 },
+        { xRatio: 0.356, y: 0.5 },
+        { xRatio: 0.4, y: 0.2 },
+        { xRatio: 0.444, y: 0.45 },
+        { xRatio: 0.489, y: 0.15 },
+        { xRatio: 0.533, y: 0.6 },
+        { xRatio: 0.578, y: 0.1 },
+        { xRatio: 0.622, y: 0.4 },
+        { xRatio: 0.667, y: 0.2 },
+        { xRatio: 0.711, y: 0.5 },
+        { xRatio: 0.756, y: 0.15 },
+        { xRatio: 0.8, y: 0.45 },
+        { xRatio: 0.844, y: 0.25 },
+        { xRatio: 0.889, y: 0.35 },
+        { xRatio: 0.933, y: 0.15 },
+        { xRatio: 1.0, y: 0.35 }
+      ]),
       baseY: height * LAYER_CONFIG.farHills.baseY,
       amplitude: LAYER_CONFIG.farHills.amplitude * 1.4,
       fill: 'url(#farHillGradient)',
@@ -143,38 +152,38 @@ export const generateHillLayers = (): HillLayer[] => {
     {
       id: 'mid-hills',
       className: 'landscape-layer-mid',
-      points: [
-        { x: 0, y: 0.25 },
-        { x: 150, y: 0.05 },
-        { x: 300, y: 0.4 },
-        { x: 450, y: 0.1 },
-        { x: 600, y: 0.5 },
-        { x: 750, y: 0.15 },
-        { x: 900, y: 0.45 },
-        { x: 1050, y: 0.05 },
-        { x: 1200, y: 0.35 },
-        { x: 1350, y: 0.15 },
-        { x: 1500, y: 0.55 },
-        { x: 1650, y: 0.1 },
-        { x: 1800, y: 0.4 },
-        { x: 1950, y: 0.2 },
-        { x: 2100, y: 0.5 },
-        { x: 2250, y: 0.1 },
-        { x: 2400, y: 0.45 },
-        { x: 2550, y: 0.15 },
-        { x: 2700, y: 0.4 },
-        { x: 2850, y: 0.2 },
-        { x: 3000, y: 0.5 },
-        { x: 3150, y: 0.1 },
-        { x: 3300, y: 0.4 },
-        { x: 3450, y: 0.2 },
-        { x: 3600, y: 0.35 },
-        { x: 3750, y: 0.15 },
-        { x: 3900, y: 0.4 },
-        { x: 4050, y: 0.2 },
-        { x: 4200, y: 0.35 },
-        { x: width, y: 0.3 }
-      ],
+      points: generateScaledPoints([
+        { xRatio: 0, y: 0.25 },
+        { xRatio: 0.033, y: 0.05 },
+        { xRatio: 0.067, y: 0.4 },
+        { xRatio: 0.1, y: 0.1 },
+        { xRatio: 0.133, y: 0.5 },
+        { xRatio: 0.167, y: 0.15 },
+        { xRatio: 0.2, y: 0.45 },
+        { xRatio: 0.233, y: 0.05 },
+        { xRatio: 0.267, y: 0.35 },
+        { xRatio: 0.3, y: 0.15 },
+        { xRatio: 0.333, y: 0.55 },
+        { xRatio: 0.367, y: 0.1 },
+        { xRatio: 0.4, y: 0.4 },
+        { xRatio: 0.433, y: 0.2 },
+        { xRatio: 0.467, y: 0.5 },
+        { xRatio: 0.5, y: 0.1 },
+        { xRatio: 0.533, y: 0.45 },
+        { xRatio: 0.567, y: 0.15 },
+        { xRatio: 0.6, y: 0.4 },
+        { xRatio: 0.633, y: 0.2 },
+        { xRatio: 0.667, y: 0.5 },
+        { xRatio: 0.7, y: 0.1 },
+        { xRatio: 0.733, y: 0.4 },
+        { xRatio: 0.767, y: 0.2 },
+        { xRatio: 0.8, y: 0.35 },
+        { xRatio: 0.833, y: 0.15 },
+        { xRatio: 0.867, y: 0.4 },
+        { xRatio: 0.9, y: 0.2 },
+        { xRatio: 0.933, y: 0.35 },
+        { xRatio: 1.0, y: 0.3 }
+      ]),
       baseY: height * LAYER_CONFIG.midHills.baseY,
       amplitude: LAYER_CONFIG.midHills.amplitude * 1.3,
       fill: 'url(#midHillGradient)',
@@ -183,31 +192,31 @@ export const generateHillLayers = (): HillLayer[] => {
     {
       id: 'mid-near-hills',
       className: 'landscape-layer-mid-near',
-      points: [
-        { x: 0, y: 0.3 },
-        { x: 200, y: 0.1 },
-        { x: 400, y: 0.5 },
-        { x: 600, y: 0.05 },
-        { x: 800, y: 0.45 },
-        { x: 1000, y: 0.15 },
-        { x: 1200, y: 0.55 },
-        { x: 1400, y: 0.1 },
-        { x: 1600, y: 0.4 },
-        { x: 1800, y: 0.2 },
-        { x: 2000, y: 0.5 },
-        { x: 2200, y: 0.05 },
-        { x: 2400, y: 0.4 },
-        { x: 2600, y: 0.15 },
-        { x: 2800, y: 0.5 },
-        { x: 3000, y: 0.1 },
-        { x: 3200, y: 0.45 },
-        { x: 3400, y: 0.2 },
-        { x: 3600, y: 0.4 },
-        { x: 3800, y: 0.15 },
-        { x: 4000, y: 0.35 },
-        { x: 4200, y: 0.2 },
-        { x: width, y: 0.3 }
-      ],
+      points: generateScaledPoints([
+        { xRatio: 0, y: 0.3 },
+        { xRatio: 0.044, y: 0.1 },
+        { xRatio: 0.089, y: 0.5 },
+        { xRatio: 0.133, y: 0.05 },
+        { xRatio: 0.178, y: 0.45 },
+        { xRatio: 0.222, y: 0.15 },
+        { xRatio: 0.267, y: 0.55 },
+        { xRatio: 0.311, y: 0.1 },
+        { xRatio: 0.356, y: 0.4 },
+        { xRatio: 0.4, y: 0.2 },
+        { xRatio: 0.444, y: 0.5 },
+        { xRatio: 0.489, y: 0.05 },
+        { xRatio: 0.533, y: 0.4 },
+        { xRatio: 0.578, y: 0.15 },
+        { xRatio: 0.622, y: 0.5 },
+        { xRatio: 0.667, y: 0.1 },
+        { xRatio: 0.711, y: 0.45 },
+        { xRatio: 0.756, y: 0.2 },
+        { xRatio: 0.8, y: 0.4 },
+        { xRatio: 0.844, y: 0.15 },
+        { xRatio: 0.889, y: 0.35 },
+        { xRatio: 0.933, y: 0.2 },
+        { xRatio: 1.0, y: 0.3 }
+      ]),
       baseY: height * LAYER_CONFIG.midNearHills.baseY,
       amplitude: LAYER_CONFIG.midNearHills.amplitude * 1.2,
       fill: 'url(#midNearHillGradient)',
@@ -216,27 +225,27 @@ export const generateHillLayers = (): HillLayer[] => {
     {
       id: 'near-hills',
       className: 'landscape-layer-near',
-      points: [
-        { x: 0, y: 0.2 },
-        { x: 250, y: 0.4 },
-        { x: 500, y: 0.05 },
-        { x: 750, y: 0.45 },
-        { x: 1000, y: 0.1 },
-        { x: 1250, y: 0.5 },
-        { x: 1500, y: 0.05 },
-        { x: 1750, y: 0.4 },
-        { x: 2000, y: 0.15 },
-        { x: 2250, y: 0.45 },
-        { x: 2500, y: 0.05 },
-        { x: 2750, y: 0.4 },
-        { x: 3000, y: 0.1 },
-        { x: 3250, y: 0.45 },
-        { x: 3500, y: 0.15 },
-        { x: 3750, y: 0.4 },
-        { x: 4000, y: 0.1 },
-        { x: 4250, y: 0.35 },
-        { x: width, y: 0.25 }
-      ],
+      points: generateScaledPoints([
+        { xRatio: 0, y: 0.2 },
+        { xRatio: 0.056, y: 0.4 },
+        { xRatio: 0.111, y: 0.05 },
+        { xRatio: 0.167, y: 0.45 },
+        { xRatio: 0.222, y: 0.1 },
+        { xRatio: 0.278, y: 0.5 },
+        { xRatio: 0.333, y: 0.05 },
+        { xRatio: 0.389, y: 0.4 },
+        { xRatio: 0.444, y: 0.15 },
+        { xRatio: 0.5, y: 0.45 },
+        { xRatio: 0.556, y: 0.05 },
+        { xRatio: 0.611, y: 0.4 },
+        { xRatio: 0.667, y: 0.1 },
+        { xRatio: 0.722, y: 0.45 },
+        { xRatio: 0.778, y: 0.15 },
+        { xRatio: 0.833, y: 0.4 },
+        { xRatio: 0.889, y: 0.1 },
+        { xRatio: 0.944, y: 0.35 },
+        { xRatio: 1.0, y: 0.25 }
+      ]),
       baseY: height * LAYER_CONFIG.nearHills.baseY,
       amplitude: LAYER_CONFIG.nearHills.amplitude * 1.2,
       fill: 'url(#nearHillGradient)',
@@ -245,24 +254,24 @@ export const generateHillLayers = (): HillLayer[] => {
     {
       id: 'very-near-hills',
       className: 'landscape-layer-very-near',
-      points: [
-        { x: 0, y: 0.25 },
-        { x: 300, y: 0.45 },
-        { x: 600, y: 0.1 },
-        { x: 900, y: 0.4 },
-        { x: 1200, y: 0.15 },
-        { x: 1500, y: 0.5 },
-        { x: 1800, y: 0.1 },
-        { x: 2100, y: 0.4 },
-        { x: 2400, y: 0.2 },
-        { x: 2700, y: 0.45 },
-        { x: 3000, y: 0.15 },
-        { x: 3300, y: 0.4 },
-        { x: 3600, y: 0.2 },
-        { x: 3900, y: 0.35 },
-        { x: 4200, y: 0.2 },
-        { x: width, y: 0.3 }
-      ],
+      points: generateScaledPoints([
+        { xRatio: 0, y: 0.25 },
+        { xRatio: 0.067, y: 0.45 },
+        { xRatio: 0.133, y: 0.1 },
+        { xRatio: 0.2, y: 0.4 },
+        { xRatio: 0.267, y: 0.15 },
+        { xRatio: 0.333, y: 0.5 },
+        { xRatio: 0.4, y: 0.1 },
+        { xRatio: 0.467, y: 0.4 },
+        { xRatio: 0.533, y: 0.2 },
+        { xRatio: 0.6, y: 0.45 },
+        { xRatio: 0.667, y: 0.15 },
+        { xRatio: 0.733, y: 0.4 },
+        { xRatio: 0.8, y: 0.2 },
+        { xRatio: 0.867, y: 0.35 },
+        { xRatio: 0.933, y: 0.2 },
+        { xRatio: 1.0, y: 0.3 }
+      ]),
       baseY: height * LAYER_CONFIG.veryNearHills.baseY,
       amplitude: LAYER_CONFIG.veryNearHills.amplitude * 1.1,
       fill: 'url(#veryNearHillGradient)',
@@ -274,9 +283,10 @@ export const generateHillLayers = (): HillLayer[] => {
 /**
  * Generates trees positioned on hill curves
  */
-export const generateTreesOnHills = (hillLayers: HillLayer[]): Tree[] => {
+export const generateTreesOnHills = (hillLayers: HillLayer[], customWidth?: number): Tree[] => {
   const trees: Tree[] = [];
-  const { width } = LANDSCAPE_DIMENSIONS;
+  const { width: defaultWidth } = LANDSCAPE_DIMENSIONS;
+  const width = customWidth || defaultWidth;
   
   hillLayers.forEach((layer, layerIndex) => {
     const layerType: LayerType = layerIndex <= 1 ? 'far' : layerIndex <= 3 ? 'mid' : 'near';
@@ -341,9 +351,10 @@ export const generateTreesOnHills = (hillLayers: HillLayer[]): Tree[] => {
 /**
  * Generates clouds with different layers for depth
  */
-export const generateClouds = (): Cloud[] => {
+export const generateClouds = (customWidth?: number): Cloud[] => {
   const clouds: Cloud[] = [];
-  const { width } = LANDSCAPE_DIMENSIONS;
+  const { width: defaultWidth } = LANDSCAPE_DIMENSIONS;
+  const width = customWidth || defaultWidth;
   
   // Generate clouds for each layer
   (Object.keys(CLOUD_CONFIG) as LayerType[]).forEach((layer) => {

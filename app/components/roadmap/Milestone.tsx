@@ -21,18 +21,69 @@ export const Milestone: React.FC<MilestoneProps> = ({
   const getStatusClasses = () => {
     const baseClasses = "transition-all duration-300 cursor-pointer";
     
+    // If there's an icon, use a more subtle background
+    const hasIcon = milestone.icon;
+    
     if (milestone.status === 'completed') {
-        return `${baseClasses} fill-green-500 stroke-green-500`;
+        return `${baseClasses} ${hasIcon ? 'fill-green-100 stroke-green-500' : 'fill-green-500 stroke-green-500'}`;
     }
     
     if (milestone.status === 'in-progress') {
-      return `${baseClasses} fill-orange-500 stroke-orange-500`;
+      return `${baseClasses} ${hasIcon ? 'fill-orange-100 stroke-orange-500' : 'fill-orange-500 stroke-orange-500'}`;
     }
     
-    return `${baseClasses} fill-white stroke-gray-300`;
+    return `${baseClasses} ${hasIcon ? 'fill-gray-50 stroke-gray-400' : 'fill-white stroke-gray-300'}`;
   };
 
   const radius = 25;
+
+  // Notion Icon Component
+  const NotionIconComponent = () => {
+    if (!milestone.icon) return null;
+
+    const iconSize = 30;
+    const iconX = milestone.x - iconSize / 2;
+    const iconY = milestone.y - iconSize / 2;
+
+    if (milestone.icon.type === 'emoji' && milestone.icon.emoji) {
+      return (
+        <text
+          x={milestone.x}
+          y={milestone.y + 6} // Slight offset to center emoji visually
+          className="pointer-events-none"
+          textAnchor="middle"
+          fontSize="24"
+        >
+          {milestone.icon.emoji}
+        </text>
+      );
+    }
+
+    if ((milestone.icon.type === 'external' || milestone.icon.type === 'file') && 
+        (milestone.icon.external?.url || milestone.icon.file?.url)) {
+      const imageUrl = milestone.icon.external?.url || milestone.icon.file?.url;
+      return (
+        <foreignObject
+          x={iconX}
+          y={iconY}
+          width={iconSize}
+          height={iconSize}
+          className="pointer-events-none"
+        >
+          <img
+            src={imageUrl}
+            alt="Phase icon"
+            className="w-full h-full object-contain rounded"
+            style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))' }}
+          />
+        </foreignObject>
+      );
+    }
+
+    return null;
+  };
+
+
 
   return (
     <g 
@@ -41,8 +92,7 @@ export const Milestone: React.FC<MilestoneProps> = ({
       onMouseEnter={(e) => onMouseEnter(e, milestone.phase)}
       onMouseLeave={onMouseLeave}
     >
-      {/* Glow effect for critical milestones */}
-      {/* Main milestone circle */}
+      {/* Main milestone circle for all phases */}
       <circle 
         cx={milestone.x} 
         cy={milestone.y} 
@@ -50,15 +100,8 @@ export const Milestone: React.FC<MilestoneProps> = ({
         className={`${getStatusClasses()} stroke-[3] hover:filter hover:drop-shadow-lg`}
       />
       
-      {/* Phase number */}
-      <text 
-        x={milestone.x} 
-        y={milestone.y + 5} 
-        className="fill-white font-bold text-lg pointer-events-none"
-        textAnchor="middle"
-      >
-        {milestone.phase}
-      </text>
+      {/* Notion Icon overlay for all phases */}
+      <NotionIconComponent />
       
       {/* Date range */}
       <text 

@@ -10,7 +10,7 @@ interface ZoomControlsProps {
 
 export const ZoomControls: React.FC<ZoomControlsProps> = ({ onZoomIn, onZoomOut }) => {
   return (
-    <div className="fixed bottom-8 right-8 flex gap-2 z-30">
+    <div className="fixed bottom-8 left-8 flex gap-2 z-30">
       <button
         onClick={onZoomOut}
         className="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-md hover:bg-gray-50 transition-colors flex items-center justify-center"

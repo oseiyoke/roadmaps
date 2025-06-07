@@ -488,9 +488,21 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                 )}
 
                 {/* Task List */}
-                {phaseData.tasks.map((task, index) => (
+                {phaseData.tasks
+                  .slice()  // Create a copy to avoid mutating original array
+                  .sort((a, b) => {
+                    // Sort priority: completed -> in-progress -> pending
+                    const statusOrder = { 'completed': 0, 'in-progress': 1, 'pending': 2 };
+                    return statusOrder[a.status] - statusOrder[b.status];
+                  })
+                  .map((task) => {
+                    // Find original index for operations that need it
+                    const originalIndex = phaseData.tasks.findIndex(t => t === task);
+                    return { task, originalIndex };
+                  })
+                  .map(({ task, originalIndex }) => (
                   <div
-                    key={index}
+                    key={originalIndex}
                     className={`
                       group relative p-4 rounded-xl border transition-all duration-200 hover:shadow-md
                       ${task.status === 'completed' 
@@ -499,7 +511,7 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                         ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 hover:shadow-amber-500/10'
                         : 'bg-white border-slate-200 hover:shadow-slate-500/10'
                       }
-                      ${completedTasks.has(index) ? 'animate-pulse' : ''}
+                      ${completedTasks.has(originalIndex) ? 'animate-pulse' : ''}
                     `}
                   >
                     <div className="flex items-center gap-4">
@@ -511,7 +523,7 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                             : task.status === 'in-progress' 
                             ? 'completed' 
                             : 'pending';
-                          handleTaskStatusChange(index, nextStatus);
+                          handleTaskStatusChange(originalIndex, nextStatus);
                         }}
                         disabled={isLoading}
                         className="transition-transform duration-200 hover:scale-110 disabled:opacity-50"
@@ -520,7 +532,7 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                       </button>
                       
                       {/* Task Name */}
-                      {editing.type === 'task' && editing.id === index ? (
+                      {editing.type === 'task' && editing.id === originalIndex ? (
                         <input
                           ref={editInputRef}
                           value={editing.value}
@@ -538,7 +550,7 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                             flex-1 text-slate-900 leading-relaxed cursor-pointer
                             ${task.status === 'completed' ? 'line-through opacity-75' : ''}
                           `}
-                          onClick={() => startEditing('task', index, task.name)}
+                          onClick={() => startEditing('task', originalIndex, task.name)}
                         >
                           {task.name}
                         </span>
@@ -546,7 +558,7 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                       
                       {/* Action Buttons */}
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {editing.type === 'task' && editing.id === index ? (
+                        {editing.type === 'task' && editing.id === originalIndex ? (
                           <>
                             <button
                               onClick={saveEdit}
@@ -565,13 +577,13 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                         ) : (
                           <>
                             <button
-                              onClick={() => startEditing('task', index, task.name)}
+                              onClick={() => startEditing('task', originalIndex, task.name)}
                               className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
                             >
                               <PencilIcon className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => deleteTask(index)}
+                              onClick={() => deleteTask(originalIndex)}
                               className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                             >
                               <TrashIcon className="w-4 h-4" />
@@ -582,7 +594,7 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                     </div>
                     
                     {/* Celebration Effect */}
-                    {completedTasks.has(index) && (
+                    {completedTasks.has(originalIndex) && (
                       <div className="absolute -top-1 -right-1">
                         <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center animate-bounce">
                           <CheckIcon className="w-4 h-4 text-white" />

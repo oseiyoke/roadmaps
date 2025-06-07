@@ -17,8 +17,34 @@ export const RoadmapPath = forwardRef<SVGPathElement, RoadmapPathProps>(
       .curve(curveCatmullRom.alpha(0.7)); // Increased alpha for smoother curves
     const d = pathGenerator(points)!;
 
+    // Generate sparkle points along the path for visual enhancement
+    const sparklePoints = points.map((point, index) => ({
+      x: point.x + (Math.random() - 0.5) * 60,
+      y: point.y + (Math.random() - 0.5) * 60,
+      delay: index * 0.2,
+      size: 1 + Math.random() * 2
+    }));
+
     return (
       <>
+        {/* Road sparkle animations */}
+        <style jsx global>{`
+          @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+          }
+          @keyframes roadShimmer {
+            0% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: 100; }
+          }
+          .road-sparkle {
+            animation: sparkle 2s ease-in-out infinite;
+          }
+          .road-progress {
+            animation: roadShimmer 3s linear infinite;
+          }
+        `}</style>
+        
         {/* Define gradients and effects */}
         <defs>
           {/* Asphalt gradient with texture */}
@@ -130,6 +156,23 @@ export const RoadmapPath = forwardRef<SVGPathElement, RoadmapPathProps>(
             opacity="0.8"
           />
           
+        </g>
+        
+        {/* Road sparkles for visual enhancement */}
+        <g className="road-sparkles">
+          {sparklePoints.map((sparkle, index) => (
+            <circle
+              key={index}
+              cx={sparkle.x}
+              cy={sparkle.y}
+              r={sparkle.size}
+              className="fill-yellow-300 road-sparkle"
+              style={{
+                animationDelay: `${sparkle.delay}s`,
+                opacity: 0.6
+              }}
+            />
+          ))}
         </g>
       </>
     );

@@ -5,9 +5,9 @@ export const LANDSCAPE_DIMENSIONS = {
 
 export const COLOR_PALETTE = {
   sky: {
-    light: '#e6f3ff',
-    medium: '#b3d9ff',
-    dark: '#87ceeb',
+    light: '#f8f9fa',
+    medium: '#e9ecef',
+    dark: '#dee2e6',
   },
   terrain: {
     farHills: {

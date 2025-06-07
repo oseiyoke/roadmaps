@@ -16,6 +16,12 @@ export interface PhaseData {
   outcomes: string[];
   requirements: string[];
   dependencies?: string[];
+  icon?: {
+    type: 'emoji' | 'external' | 'file';
+    emoji?: string;
+    external?: { url: string };
+    file?: { url: string };
+  };
 }
 
 export interface Milestone {
@@ -25,12 +31,20 @@ export interface Milestone {
   phase: number;
   status: 'completed' | 'in-progress' | 'pending';
   critical?: boolean;
+  icon?: {
+    type: 'emoji' | 'external' | 'file';
+    emoji?: string;
+    external?: { url: string };
+    file?: { url: string };
+  };
 }
 
 export interface TaskDot {
   x: number;
   y: number;
   status: 'completed' | 'in-progress' | 'pending';
+  name?: string;
+  phaseTitle?: string;
 }
 
 export interface RoadmapData {

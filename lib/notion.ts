@@ -34,6 +34,12 @@ interface NotionPage {
     Dates?: { date?: { start: string; end: string } };
     [key: string]: unknown;
   };
+  icon?: {
+    type: 'emoji' | 'external' | 'file';
+    emoji?: string;
+    external?: { url: string };
+    file?: { url: string };
+  } | null;
 }
 
 interface NotionTask {
@@ -56,6 +62,12 @@ export interface Phase {
   startDate: string;
   endDate: string;
   critical: boolean;
+  icon?: {
+    type: 'emoji' | 'external' | 'file';
+    emoji?: string;
+    external?: { url: string };
+    file?: { url: string };
+  };
 }
 
 export interface Task {
@@ -207,6 +219,17 @@ export async function fetchPhases(): Promise<Phase[]> {
       // Extract title and tagline
       const tagline = title.split(':')[1]?.trim() || '';
 
+      // Extract icon data
+      let icon = undefined;
+      if (notionPage.icon) {
+        icon = {
+          type: notionPage.icon.type,
+          ...(notionPage.icon.emoji && { emoji: notionPage.icon.emoji }),
+          ...(notionPage.icon.external && { external: notionPage.icon.external }),
+          ...(notionPage.icon.file && { file: notionPage.icon.file }),
+        };
+      }
+
       return {
         id: notionPage.id,
         phase: phaseNumber,
@@ -216,6 +239,7 @@ export async function fetchPhases(): Promise<Phase[]> {
         startDate: properties.Dates?.date?.start || '',
         endDate: properties.Dates?.date?.end || '',
         critical: title.toLowerCase().includes('critical') || false,
+        icon,
       };
     });
     

@@ -14,6 +14,12 @@ interface NotionPhase {
   endDate: string;
   critical: boolean;
   content?: NotionContent; // aggregated content
+  icon?: {
+    type: 'emoji' | 'external' | 'file';
+    emoji?: string;
+    external?: { url: string };
+    file?: { url: string };
+  };
 }
 
 interface NotionTask {
@@ -86,7 +92,8 @@ export function useNotionData() {
           painPoints: content.painPoints || [],
           outcomes: content.outcomes || [],
           requirements: content.requirements || [],
-          dependencies: []
+          dependencies: [],
+          icon: phase.icon
         };
       });
 
