@@ -85,13 +85,13 @@ export default function RoadmapPreview({ token, databases, onComplete, onBack }:
         <div className="flex justify-between">
           <button
             onClick={onBack}
-            className="text-gray-700 hover:text-gray-900"
+            className="text-gray-700 hover:text-gray-900 cursor-pointer"
           >
             ← Back to database selection
           </button>
           <button
             onClick={fetchPreview}
-            className="text-blue-600 hover:text-blue-700"
+            className="text-blue-600 hover:text-blue-700 cursor-pointer"
           >
             Try again
           </button>
@@ -173,7 +173,7 @@ export default function RoadmapPreview({ token, databases, onComplete, onBack }:
       <div className="flex justify-between items-center pt-4">
         <button
           onClick={onBack}
-          className="text-gray-700 hover:text-gray-900"
+          className="text-gray-700 hover:text-gray-900 cursor-pointer"
         >
           ← Back
         </button>

@@ -1,12 +1,5 @@
-import { Client } from '@notionhq/client';
-import { NOTION_TO_STATUS, getProjectsDatabaseId, getTasksDatabaseId } from './notion-client';
-
-// Create a new client for each request to pick up dynamic env vars
-function createNotionClient() {
-  return new Client({
-    auth: process.env.NOTION_API_TOKEN!,
-  });
-}
+import { NOTION_TO_STATUS, createNotionClient, getProjectsDatabaseId, getTasksDatabaseId, NotionConfig } from './notion-client';
+import { ContentBlock } from '@/app/types/roadmap';
 
 // Cache configuration
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -32,6 +25,19 @@ interface NotionBlock {
   heading_3?: { rich_text: Array<{ plain_text: string }> };
   paragraph?: { rich_text: Array<{ plain_text: string }> };
   bulleted_list_item?: { rich_text: Array<{ plain_text: string }> };
+  numbered_list_item?: { rich_text: Array<{ plain_text: string }> };
+  quote?: { rich_text: Array<{ plain_text: string }> };
+  callout?: { 
+    rich_text: Array<{ plain_text: string }>;
+    icon?: { emoji?: string };
+    color?: string;
+  };
+  code?: { 
+    rich_text: Array<{ plain_text: string }>;
+    language?: string;
+  };
+  divider?: object;
+  toggle?: { rich_text: Array<{ plain_text: string }> };
 }
 
 interface NotionPage {
@@ -88,10 +94,7 @@ export interface Task {
 }
 
 export interface PhaseContent {
-  about?: string;
-  painPoints?: string[];
-  outcomes?: string[];
-  requirements?: string[];
+  content: ContentBlock[];
 }
 
 // Helper function to extract text from rich text
@@ -117,88 +120,154 @@ async function paginateResults<T>(
   return allResults;
 }
 
-// Parse Notion blocks into structured content
+// Parse Notion blocks into flexible content structure
 export function parsePageContent(blocks: NotionBlock[]): PhaseContent {
-  const content: PhaseContent = {};
-  let currentSection: keyof PhaseContent | null = null;
-  let currentList: string[] = [];
+  const contentBlocks: ContentBlock[] = [];
   
-  const saveCurrentList = () => {
-    if (!currentSection || currentList.length === 0) return;
+  blocks.forEach((block, index) => {
+    const blockId = `block-${index}`;
+    // Create content block based on type
+    let contentBlock: ContentBlock | null = null;
     
-    switch (currentSection) {
-      case 'painPoints':
-        content.painPoints = [...currentList];
-        break;
-      case 'outcomes':
-        content.outcomes = [...currentList];
-        break;
-      case 'requirements':
-        content.requirements = [...currentList];
-        break;
-    }
-  };
-  
-  blocks.forEach((block) => {
     // Handle headings
     if (block.type === 'heading_1' || block.type === 'heading_2' || block.type === 'heading_3') {
-      // Save previous section if it was a list
-      saveCurrentList();
-      currentList = [];
-      
       const headingText = extractPlainText(block[block.type]?.rich_text);
-      const normalizedText = headingText.toLowerCase();
       
-      // Map heading to section
-      if (normalizedText.includes('about')) {
-        currentSection = 'about';
-      } else if (normalizedText.includes('pain points')) {
-        currentSection = 'painPoints';
-      } else if (normalizedText.includes('outcomes')) {
-        currentSection = 'outcomes';
-      } else if (normalizedText.includes('requirements')) {
-        currentSection = 'requirements';
-      }
+      contentBlock = {
+        id: blockId,
+        type: block.type as 'heading_1' | 'heading_2' | 'heading_3',
+        text: headingText,
+      };
     }
     
     // Handle paragraphs
-    if (block.type === 'paragraph' && currentSection && block.paragraph) {
+    if (block.type === 'paragraph' && block.paragraph) {
       const text = extractPlainText(block.paragraph.rich_text);
       
       if (text.trim()) {
-        if (currentSection === 'about') {
-          content.about = (content.about || '') + text + '\n';
-        } else {
-          currentList.push(text);
-        }
+        contentBlock = {
+          id: blockId,
+          type: 'paragraph',
+          text: text,
+        };
       }
     }
     
     // Handle bullet lists
-    if (block.type === 'bulleted_list_item' && currentSection && block.bulleted_list_item) {
+    if (block.type === 'bulleted_list_item' && block.bulleted_list_item) {
       const text = extractPlainText(block.bulleted_list_item.rich_text);
       
       if (text.trim()) {
-        currentList.push(text);
+        contentBlock = {
+          id: blockId,
+          type: 'bulleted_list_item',
+          text: text,
+        };
       }
+    }
+    
+    // Handle numbered lists
+    if (block.type === 'numbered_list_item' && block.numbered_list_item) {
+      const text = extractPlainText(block.numbered_list_item.rich_text);
+      
+      if (text.trim()) {
+        contentBlock = {
+          id: blockId,
+          type: 'numbered_list_item',
+          text: text,
+        };
+      }
+    }
+    
+    // Handle quotes
+    if (block.type === 'quote' && block.quote) {
+      const text = extractPlainText(block.quote.rich_text);
+      
+      if (text.trim()) {
+        contentBlock = {
+          id: blockId,
+          type: 'quote',
+          text: text,
+        };
+      }
+    }
+    
+    // Handle callouts
+    if (block.type === 'callout' && block.callout) {
+      const text = extractPlainText(block.callout.rich_text);
+      
+      if (text.trim()) {
+        contentBlock = {
+          id: blockId,
+          type: 'callout',
+          text: text,
+          metadata: {
+            icon: block.callout.icon?.emoji,
+            color: block.callout.color,
+          },
+        };
+      }
+    }
+    
+    // Handle code blocks
+    if (block.type === 'code' && block.code) {
+      const text = extractPlainText(block.code.rich_text);
+      
+      if (text.trim()) {
+        contentBlock = {
+          id: blockId,
+          type: 'code',
+          text: text,
+          metadata: {
+            language: block.code.language,
+          },
+        };
+      }
+    }
+    
+    // Handle dividers
+    if (block.type === 'divider') {
+      contentBlock = {
+        id: blockId,
+        type: 'divider',
+        text: '',
+      };
+    }
+    
+    // Handle toggles
+    if (block.type === 'toggle' && block.toggle) {
+      const text = extractPlainText(block.toggle.rich_text);
+      
+      if (text.trim()) {
+        contentBlock = {
+          id: blockId,
+          type: 'toggle',
+          text: text,
+          // TODO: Fetch nested blocks for toggle content
+        };
+      }
+    }
+    
+    if (contentBlock) {
+      contentBlocks.push(contentBlock);
     }
   });
   
-  // Save last section
-  saveCurrentList();
   
-  return content;
+  return {
+    content: contentBlocks
+  };
 }
 
 // Fetch all phases (projects) from Notion
-export async function fetchPhases(): Promise<Phase[]> {
+export async function fetchPhases(config: NotionConfig): Promise<Phase[]> {
   const cacheKey = 'phases';
   const cached = getCached<Phase[]>(cacheKey);
   if (cached) return cached;
   
   try {
-    const notion = createNotionClient();
-    const databaseId = getProjectsDatabaseId();
+    const notion = createNotionClient(config);
+    const databaseId = getProjectsDatabaseId(config);
     
     // Fetch all pages with pagination
     const allResults = await paginateResults(async (cursor) => 
@@ -268,13 +337,13 @@ export async function fetchPhases(): Promise<Phase[]> {
 }
 
 // Fetch detailed phase content including page blocks
-export async function fetchPhaseContent(phaseId: string): Promise<PhaseContent> {
+export async function fetchPhaseContent(phaseId: string, config: NotionConfig): Promise<PhaseContent> {
   const cacheKey = `phase-${phaseId}`;
   const cached = getCached<PhaseContent>(cacheKey);
   if (cached) return cached;
   
   try {
-    const notion = createNotionClient();
+    const notion = createNotionClient(config);
     
     // Get all page blocks with pagination
     const allBlocks = await paginateResults(async (cursor) =>
@@ -297,14 +366,14 @@ export async function fetchPhaseContent(phaseId: string): Promise<PhaseContent> 
 }
 
 // Fetch all tasks from the database (optimized approach)
-export async function fetchAllTasks(): Promise<Task[]> {
+export async function fetchAllTasks(config: NotionConfig): Promise<Task[]> {
   const cacheKey = 'all-tasks';
   const cached = getCached<Task[]>(cacheKey);
   if (cached) return cached;
   
   try {
-    const notion = createNotionClient();
-    const databaseId = getTasksDatabaseId();
+    const notion = createNotionClient(config);
+    const databaseId = getTasksDatabaseId(config);
     
     // Fetch all pages with pagination, sorted by Due date ascending
     const allResults = await paginateResults(async (cursor) =>

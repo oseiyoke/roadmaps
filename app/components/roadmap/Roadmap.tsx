@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   useNotionData,
   useViewportDimensions,
@@ -57,9 +57,9 @@ export const Roadmap: React.FC = () => {
   useRoadProgress({ phaseData });
 
   // Event handlers
-  const handleMilestoneClick = (phase: number) => {
+  const handleMilestoneClick = useCallback((phase: number) => {
     setSelectedPhase(phase);
-  };
+  }, [phaseData]);
 
   const handleZoomIn = () => {
     setZoom(prev => Math.min(prev + 0.2, 3));

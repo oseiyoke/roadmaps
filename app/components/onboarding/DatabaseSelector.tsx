@@ -97,7 +97,7 @@ export default function DatabaseSelector({ token, onComplete, onBack }: Database
         </div>
         <button
           onClick={onBack}
-          className="text-gray-700 hover:text-gray-900"
+          className="text-gray-700 hover:text-gray-900 cursor-pointer"
         >
           ← Back to token setup
         </button>
@@ -120,7 +120,7 @@ export default function DatabaseSelector({ token, onComplete, onBack }: Database
         </p>
         <ol className="mt-2 text-sm text-amber-700 space-y-1 list-decimal list-inside">
           <li>
-            <a href="https://www.notion.so/profile/integrations" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700"> 
+            <a href="https://www.notion.so/profile/integrations" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 cursor-pointer"> 
             Open your Integration Token Page  {' '}
             </a>
             from your list of integration tokens
@@ -198,7 +198,7 @@ export default function DatabaseSelector({ token, onComplete, onBack }: Database
       <div className="flex justify-between items-center pt-4">
         <button
           onClick={onBack}
-          className="text-gray-700 hover:text-gray-900"
+          className="text-gray-700 hover:text-gray-900 cursor-pointer"
         >
           ← Back
         </button>

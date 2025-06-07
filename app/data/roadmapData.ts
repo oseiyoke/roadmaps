@@ -18,26 +18,7 @@ export const phaseData: Record<number, PhaseData> = {
       { name: "Configure OpenAI integration for Malindi", status: "pending" },
       { name: "Basic user authentication and access control", status: "pending" }
     ],
-    painPoints: [
-      "No centralised system for trade information",
-      "Manual WhatsApp message monitoring across 200+ groups",
-      "Traders spending hours searching for customer information",
-      "No quick way to look up rates or trade history"
-    ],
-    outcomes: [
-      "Malindi can answer basic queries about trades and customers",
-      "Traders can search historical data in one place",
-      "WhatsApp messages start being captured automatically",
-      "30-minute tasks reduced to 2-minute queries"
-    ],
-    requirements: [
-      "Cloud hosting (AWS/Azure/GCP)",
-      "Wassenger subscription (£35/month)",
-      "OpenAI API subscription (£50/month)",
-      "SSL certificates for secure access",
-      "Domain name for CTM platform",
-      "Basic monitoring tools"
-    ]
+    content: []
   },
   2: {
     title: "Data Unification",
@@ -55,26 +36,7 @@ export const phaseData: Record<number, PhaseData> = {
       { name: "Build comprehensive audit trail", status: "pending" },
       { name: "Create data backup procedures", status: "pending" }
     ],
-    painPoints: [
-      "Customer data scattered across HubSpot, Excel sheets, and personal folders",
-      "Trade records inconsistent across Oracle, NOP, and blotter",
-      "Historical WhatsApp conversations inaccessible",
-      "Rate history stored in various spreadsheets"
-    ],
-    outcomes: [
-      "Single source of truth for all customer data",
-      "Complete trade history accessible instantly",
-      "Data discrepancies automatically identified",
-      "Compliance-ready audit trails"
-    ],
-    requirements: [
-      "HubSpot API access",
-      "Database migration tools",
-      "Data storage expansion",
-      "Backup infrastructure",
-      "Data quality monitoring software"
-    ],
-    dependencies: ["Phase 1 infrastructure complete"]
+    content: []
   },
   3: {
     title: "Real-Time Operations",
@@ -92,26 +54,7 @@ export const phaseData: Record<number, PhaseData> = {
       { name: "Build mobile-responsive interface", status: "pending" },
       { name: "Create role-based dashboards", status: "pending" }
     ],
-    painPoints: [
-      "Liquidity gaps discovered too late",
-      "Settlement status unknown until manually checked",
-      "No visibility into current positions across accounts",
-      "Rate updates done manually and inconsistently"
-    ],
-    outcomes: [
-      "Live view of all positions and liquidity",
-      "Automatic alerts before liquidity issues",
-      "Settlement status visible without manual checking",
-      "Traders can access critical info on mobile"
-    ],
-    requirements: [
-      "WebSocket infrastructure for real-time updates",
-      "SMS API integration access",
-      "Market data feed subscriptions",
-      "Notification service (email/SMS alerts)",
-      "Mobile UI framework"
-    ],
-    dependencies: ["SMS team to provide API access", "Completed data unification (Phase 2)"]
+    content: []
   },
   4: {
     title: "Intelligent Automation",
@@ -129,26 +72,7 @@ export const phaseData: Record<number, PhaseData> = {
       { name: "Integrate with compliance checks", status: "pending" },
       { name: "Set up automated customer communications", status: "pending" }
     ],
-    painPoints: [
-      "Manual rate sharing to 200+ WhatsApp groups",
-      "Repetitive trade recording across multiple systems",
-      "Customer tier rates calculated manually",
-      "No proactive issue identification"
-    ],
-    outcomes: [
-      "Rates shared automatically based on customer tiers",
-      "Trade recording happens once, updates everywhere",
-      "Unusual patterns flagged automatically",
-      "Daily reports generated without manual work"
-    ],
-    requirements: [
-      "WhatsApp Business API upgrade",
-      "Advanced analytics tools",
-      "Workflow automation engine",
-      "Scheduled task infrastructure",
-      "Template management system"
-    ],
-    dependencies: ["Stable real-time operations (Phase 3)"]
+    content: []
   },
   5: {
     title: "Advanced Intelligence",
@@ -166,26 +90,7 @@ export const phaseData: Record<number, PhaseData> = {
       { name: "Implement performance analytics", status: "pending" },
       { name: "Create training modules", status: "pending" }
     ],
-    painPoints: [
-      "Reactive approach to liquidity management",
-      "No insight into customer behaviour patterns",
-      "Unable to optimise trading strategies",
-      "Knowledge lost when staff leave"
-    ],
-    outcomes: [
-      "Liquidity needs predicted 24 hours in advance",
-      "Customer churn risk identified early",
-      "Trading strategies optimised by AI",
-      "New staff onboarded faster"
-    ],
-    requirements: [
-      "Machine learning infrastructure",
-      "Historical data analysis tools",
-      "Advanced visualisation platform",
-      "Knowledge base software",
-      "Training content management system"
-    ],
-    dependencies: ["3+ months of clean, unified data", "All previous phases stable"]
+    content: []
   },
   6: {
     title: "Seamless Integration",
@@ -203,26 +108,7 @@ export const phaseData: Record<number, PhaseData> = {
       { name: "Create executive reporting suite", status: "pending" },
       { name: "Performance optimisation", status: "pending" }
     ],
-    painPoints: [
-      "Support team lacks customer context",
-      "Compliance reviews slow down trading",
-      "Settlement delays not communicated proactively",
-      "No unified view across all operations"
-    ],
-    outcomes: [
-      "Support sees full customer trading history",
-      "Compliance checks happen in real-time",
-      "All teams work from same information",
-      "Executives have complete operational visibility"
-    ],
-    requirements: [
-      "API gateway for all integrations",
-      "Enterprise message bus",
-      "Unified authentication system",
-      "Executive dashboard platform",
-      "System monitoring tools"
-    ],
-    dependencies: ["SS, SMS, and LCS systems operational", "Stable API contracts with all modules"]
+    content: []
   },
   7: {
     title: "Seamless Integration",
@@ -240,26 +126,7 @@ export const phaseData: Record<number, PhaseData> = {
       { name: "Create executive reporting suite", status: "pending" },
       { name: "Performance optimisation", status: "pending" }
     ],
-    painPoints: [
-      "Support team lacks customer context",
-      "Compliance reviews slow down trading",
-      "Settlement delays not communicated proactively",
-      "No unified view across all operations"
-    ],
-    outcomes: [
-      "Support sees full customer trading history",
-      "Compliance checks happen in real-time",
-      "All teams work from same information",
-      "Executives have complete operational visibility"
-    ],
-    requirements: [
-      "API gateway for all integrations",
-      "Enterprise message bus",
-      "Unified authentication system",
-      "Executive dashboard platform",
-      "System monitoring tools"
-    ],
-    dependencies: ["SS, SMS, and LCS systems operational", "Stable API contracts with all modules"]
+    content: []
   }
 };
 

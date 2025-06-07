@@ -9,30 +9,35 @@ export const NOTION_TO_STATUS = {
   'Planning': 'pending'
 } as const;
 
-// Create the Notion client - will use environment variables
-export const notion = new Client({
-  auth: process.env.NOTION_API_TOKEN!,
-});
-
-// Export functions to get database IDs
-export function getProjectsDatabaseId() {
-  const id = process.env.NOTION_PROJECTS_DATABASE_ID;
-  
-  if (!id) {
-    throw new Error('NOTION_PROJECTS_DATABASE_ID not configured');
-  }
-  
-  return id;
+// Config interface for Notion
+export interface NotionConfig {
+  accessToken: string;
+  projectsDatabaseId: string;
+  tasksDatabaseId: string;
 }
 
-export function getTasksDatabaseId() {
-  const id = process.env.NOTION_TASKS_DATABASE_ID;
-  
-  if (!id) {
-    throw new Error('NOTION_TASKS_DATABASE_ID not configured');
+// Create the Notion client with provided config
+export function createNotionClient(config: NotionConfig) {
+  return new Client({
+    auth: config.accessToken,
+  });
+}
+
+// Export functions to get database IDs from config
+export function getProjectsDatabaseId(config: NotionConfig) {
+  if (!config.projectsDatabaseId) {
+    throw new Error('Projects database ID not configured');
   }
   
-  return id;
+  return config.projectsDatabaseId;
+}
+
+export function getTasksDatabaseId(config: NotionConfig) {
+  if (!config.tasksDatabaseId) {
+    throw new Error('Tasks database ID not configured');
+  }
+  
+  return config.tasksDatabaseId;
 }
 
 // Shared status mappings

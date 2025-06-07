@@ -47,7 +47,7 @@ export default function NotionSetup({ onComplete }: NotionSetupProps) {
                 <button
                   type="button"
                   onClick={openNotionIntegrations}
-                  className="mx-2 inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  className="mx-2 inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
                 >
                   Open Notion Integrations
                   <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,7 +64,7 @@ export default function NotionSetup({ onComplete }: NotionSetupProps) {
               <div className="ml-3">
                 <p className="font-medium">Grant Access to Your Databases</p>
                 <p className="text-sm text-gray-700 mt-1">
-                  Once you've created the integration, click on the <b>Access</b> tab and grant access to the relevant Notion pages
+                  Once you&apos;ve created the integration, click on the <b>Access</b> tab and grant access to the relevant Notion pages
                 </p>
               </div>
             </div>

@@ -3,6 +3,19 @@ export interface Task {
   status: 'completed' | 'in-progress' | 'pending';
 }
 
+// Flexible content block structure that mirrors Notion blocks
+export interface ContentBlock {
+  id: string;
+  type: 'heading_1' | 'heading_2' | 'heading_3' | 'paragraph' | 'bulleted_list_item' | 'numbered_list_item' | 'toggle' | 'quote' | 'callout' | 'divider' | 'code';
+  text: string;
+  children?: ContentBlock[];
+  metadata?: {
+    language?: string; // for code blocks
+    icon?: string; // for callouts
+    color?: string; // for callouts
+  };
+}
+
 export interface PhaseData {
   title: string;
   tagline: string;
@@ -11,11 +24,7 @@ export interface PhaseData {
   endDate: string;
   critical: boolean;
   tasks: Task[];
-  about?: string;
-  painPoints: string[];
-  outcomes: string[];
-  requirements: string[];
-  dependencies?: string[];
+  content: ContentBlock[];
   icon?: {
     type: 'emoji' | 'external' | 'file';
     emoji?: string;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { PhaseData } from '@/app/types/roadmap';
+import { PhaseData, ContentBlock } from '@/app/types/roadmap';
 import { filterTasksByPhase } from '@/lib/notion';
 import { RoadmapConfigContext } from '@/app/components/roadmap/RoadmapViewer';
 
@@ -14,7 +14,11 @@ interface NotionPhase {
   startDate: string;
   endDate: string;
   critical: boolean;
-  content?: NotionContent; // aggregated content
+  content?: ContentBlock[]; // content blocks array directly on phase
+  about?: string;
+  painPoints?: string[];
+  outcomes?: string[];
+  requirements?: string[];
   icon?: {
     type: 'emoji' | 'external' | 'file';
     emoji?: string;
@@ -30,13 +34,6 @@ interface NotionTask {
   dueDate: string;
   tags: string[];
   projectIds: string[];
-}
-
-interface NotionContent {
-  about?: string;
-  painPoints?: string[];
-  outcomes?: string[];
-  requirements?: string[];
 }
 
 interface RoadmapData {
@@ -55,22 +52,33 @@ export function useNotionData() {
 
   // Fetch phases and tasks on mount
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    // Only fetch data if we have a valid config
+    if (roadmapConfig?.notionConfig) {
+      fetchAllData();
+    } else {
+      // If no config, set loading to false and clear any error
+      setLoading(false);
+      setError(null);
+    }
+  }, [roadmapConfig]);
 
   const fetchAllData = async () => {
+    // Don't fetch if no config is available
+    if (!roadmapConfig?.notionConfig) {
+      setLoading(false);
+      setError('Notion configuration is required');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
       // Prepare headers with roadmap config
       const headers: HeadersInit = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-roadmap-config': JSON.stringify(roadmapConfig)
       };
-      
-      if (roadmapConfig) {
-        headers['x-roadmap-config'] = JSON.stringify(roadmapConfig);
-      }
 
       // Fetch both phases (with content) and tasks in one request
       const response = await fetch('/api/notion/phases-with-tasks', {
@@ -85,13 +93,8 @@ export function useNotionData() {
       // Build phase data map with filtered tasks and content
       const phaseDataMap: Record<number, PhaseData> = {};
       data.phases.forEach(phase => {
-        const content = phase.content || {};
-
         // Filter tasks for this phase
         const phaseTasks = filterTasksByPhase(data.tasks, phase.id);
-        console.log(
-          "phase.status", phase.status
-        )
 
         phaseDataMap[phase.phase] = {
           title: phase.title,
@@ -104,13 +107,10 @@ export function useNotionData() {
             name: task.name,
             status: task.status as 'completed' | 'in-progress' | 'pending'
           })),
-          about: content.about,
-          painPoints: content.painPoints || [],
-          outcomes: content.outcomes || [],
-          requirements: content.requirements || [],
-          dependencies: [],
+          content: phase.content || [],
           icon: phase.icon
         };
+        
       });
 
       setPhaseData(phaseDataMap);

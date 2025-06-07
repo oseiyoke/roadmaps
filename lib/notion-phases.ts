@@ -1,8 +1,10 @@
-import { notion } from './notion-client';
+import { createNotionClient, NotionConfig } from './notion-client';
 import { refreshPhaseCache } from './notion';
 
 // Update a phase
-export async function updatePhase(phaseId: string, updates: { title?: string; status?: string }) {
+export async function updatePhase(phaseId: string, updates: { title?: string; status?: string }, config: NotionConfig) {
+  const notion = createNotionClient(config);
+  
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const properties: any = {};
 

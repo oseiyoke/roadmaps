@@ -59,7 +59,7 @@ export const useTooltipHandlers = (): TooltipHandlers => {
       tagline: `${statusText}${task.phaseTitle ? ` • ${task.phaseTitle}` : ''}`,
       position: {
         x: rect.left + rect.width / 2,
-        y: rect.top - 10
+        y: rect.bottom + 10
       }
     });
     setAnimationsPaused(true);
