@@ -7,6 +7,7 @@ interface RoadmapConfig {
   id: string;
   name: string;
   platform: string;
+  shareId?: string;
   notionConfig?: {
     accessToken: string;
     projectsDatabaseId: string;

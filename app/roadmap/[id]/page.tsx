@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { getRoadmapById } from '@/lib/supabase';
+import { debugLog, debugError, checkSupabaseConfig } from '@/lib/debug';
 
 // Dynamic import to avoid SSR issues with localStorage
 const RoadmapViewer = dynamic(() => import('../../components/roadmap').then(mod => mod.RoadmapViewer), {
@@ -18,6 +20,7 @@ interface RoadmapConfig {
   id: string;
   name: string;
   platform: string;
+  shareId?: string;
   notionConfig?: {
     accessToken: string;
     projectsDatabaseId: string;
@@ -33,29 +36,69 @@ export default function RoadmapPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadRoadmapConfig = () => {
+    const loadRoadmapConfig = async () => {
+      debugLog(`Loading roadmap with ID: ${params.id}`);
+      checkSupabaseConfig();
+      
       try {
-        const roadmapsStr = localStorage.getItem('roadmaps');
-        if (!roadmapsStr) {
-          setError('No roadmaps found');
-          setLoading(false);
-          return;
-        }
-
-        const roadmaps = JSON.parse(roadmapsStr);
-        const config = roadmaps.find((r: RoadmapConfig) => r.id === params.id);
+        debugLog('Attempting to load from Supabase...');
+        const roadmap = await getRoadmapById(params.id as string);
         
-        if (!config) {
-          setError('Roadmap not found');
+        if (roadmap) {
+          debugLog('Roadmap loaded from Supabase:', roadmap);
+          setRoadmapConfig({
+            id: roadmap.id,
+            name: roadmap.name,
+            platform: roadmap.platform,
+            notionConfig: roadmap.notion_config,
+            shareId: roadmap.share_id,
+          });
           setLoading(false);
           return;
         }
-
-        setRoadmapConfig(config);
+        
+        debugLog('Roadmap not found in Supabase, trying localStorage...');
+        // If not found in Supabase, try localStorage as fallback
+        const roadmapsStr = localStorage.getItem('roadmaps');
+        if (roadmapsStr) {
+          const roadmaps = JSON.parse(roadmapsStr);
+          const config = roadmaps.find((r: RoadmapConfig) => r.id === params.id);
+          
+          if (config) {
+            debugLog('Roadmap found in localStorage:', config);
+            setRoadmapConfig(config);
+            setLoading(false);
+            return;
+          }
+        }
+        
+        debugLog('Roadmap not found anywhere');
+        setError('Roadmap not found');
+        setLoading(false);
       } catch (err) {
-        console.error('Error loading roadmap:', err);
+        debugError('Error loading roadmap from Supabase:', err);
+        
+        // Fallback to localStorage on error
+        try {
+          debugLog('Falling back to localStorage...');
+          const roadmapsStr = localStorage.getItem('roadmaps');
+          if (roadmapsStr) {
+            const roadmaps = JSON.parse(roadmapsStr);
+            const config = roadmaps.find((r: RoadmapConfig) => r.id === params.id);
+            
+            if (config) {
+              debugLog('Roadmap found in localStorage fallback:', config);
+              setRoadmapConfig(config);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (localErr) {
+          debugError('Failed to load from localStorage:', localErr);
+        }
+        
+        debugError('All loading methods failed');
         setError('Failed to load roadmap configuration');
-      } finally {
         setLoading(false);
       }
     };

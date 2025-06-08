@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import NotionSetup from '../components/onboarding/NotionSetup';
 import DatabaseSelector from '../components/onboarding/DatabaseSelector';
 import RoadmapPreview from '../components/onboarding/RoadmapPreview';
+import { createRoadmap } from '@/lib/supabase';
+import { debugLog, debugError, checkSupabaseConfig } from '@/lib/debug';
 
 type Step = 'setup' | 'databases' | 'preview';
 
@@ -28,39 +30,55 @@ export default function OnboardingPage() {
     setCurrentStep('preview');
   };
 
-  const handleOnboardingComplete = () => {
-    // Save roadmap to localStorage
-    const roadmapId = crypto.randomUUID();
-    const roadmap = {
-      id: roadmapId,
-      name: selectedDatabases.name || 'My Roadmap',
-      platform: 'notion',
-      notionConfig: {
-        accessToken: integrationToken,
-        projectsDatabaseId: selectedDatabases.projects,
-        tasksDatabaseId: selectedDatabases.tasks,
-      },
-      createdAt: new Date().toISOString(),
-      lastSynced: new Date().toISOString(),
-    };
-
-    const existingRoadmaps = localStorage.getItem('roadmaps');
-    const roadmaps = existingRoadmaps ? JSON.parse(existingRoadmaps) : [];
-    roadmaps.push(roadmap);
-    localStorage.setItem('roadmaps', JSON.stringify(roadmaps));
+  const handleOnboardingComplete = async () => {
+    debugLog('Starting onboarding completion process');
+    checkSupabaseConfig();
     
-    // Initialize user if needed
-    const user = localStorage.getItem('roadmap_user');
-    if (!user) {
-      localStorage.setItem('roadmap_user', JSON.stringify({
-        id: crypto.randomUUID(),
-        createdAt: new Date().toISOString(),
-        lastVisited: new Date().toISOString()
-      }));
-    }
+    try {
+      // Save roadmap to Supabase
+      const roadmap = {
+        name: selectedDatabases.name || 'My Roadmap',
+        platform: 'notion',
+        notionConfig: {
+          accessToken: integrationToken,
+          projectsDatabaseId: selectedDatabases.projects,
+          tasksDatabaseId: selectedDatabases.tasks,
+        },
+      };
 
-    // Redirect to the roadmap view
-    router.push(`/roadmap/${roadmapId}`);
+      debugLog('Attempting to save roadmap to Supabase:', { name: roadmap.name });
+      const savedRoadmap = await createRoadmap(roadmap);
+      debugLog('Roadmap saved successfully to Supabase:', savedRoadmap);
+
+      // Redirect to the roadmap view
+      router.push(`/roadmap/${savedRoadmap.id}`);
+    } catch (error) {
+      debugError('Failed to save roadmap to Supabase:', error);
+      
+      // Fallback: Save to localStorage only
+      const roadmapId = crypto.randomUUID();
+      const roadmap = {
+        id: roadmapId,
+        name: selectedDatabases.name || 'My Roadmap',
+        platform: 'notion',
+        notionConfig: {
+          accessToken: integrationToken,
+          projectsDatabaseId: selectedDatabases.projects,
+          tasksDatabaseId: selectedDatabases.tasks,
+        },
+        createdAt: new Date().toISOString(),
+        lastSynced: new Date().toISOString(),
+      };
+
+      // Save to localStorage as fallback
+      const existingRoadmaps = localStorage.getItem('roadmaps');
+      const roadmaps = existingRoadmaps ? JSON.parse(existingRoadmaps) : [];
+      roadmaps.push(roadmap);
+      localStorage.setItem('roadmaps', JSON.stringify(roadmaps));
+      
+      debugLog('Roadmap saved to localStorage as fallback');
+      router.push(`/roadmap/${roadmapId}`);
+    }
   };
 
   const handleBack = () => {
