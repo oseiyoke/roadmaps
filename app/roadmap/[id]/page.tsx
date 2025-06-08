@@ -34,6 +34,7 @@ export default function RoadmapPage() {
   const [roadmapConfig, setRoadmapConfig] = useState<RoadmapConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMobileView, setIsMobileView] = useState(false);
 
   useEffect(() => {
     const loadRoadmapConfig = async () => {
@@ -106,6 +107,13 @@ export default function RoadmapPage() {
     loadRoadmapConfig();
   }, [params.id]);
 
+  useEffect(() => {
+    const checkMobile = () => setIsMobileView(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -124,7 +132,7 @@ export default function RoadmapPage() {
             </svg>
           </div>
           <h2 className="text-2xl font-semibold mb-2">Roadmap not found</h2>
-          <p className="text-gray-700 mb-6">{error || 'The roadmap you&apos;re looking for doesn&apos;t exist.'}</p>
+          <p className="text-gray-700 mb-6">{error || 'The roadmap you\'re looking for doesn\'t exist.'}</p>
           <button
             onClick={() => router.push('/dashboard')}
             className="inline-flex items-center px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
@@ -132,6 +140,15 @@ export default function RoadmapPage() {
             Back to Dashboard
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (isMobileView) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center">
+        <h2 className="text-2xl font-semibold mb-4">Mobile view not available</h2>
+        <p className="text-gray-700 mb-6">Please view this roadmap on the web (desktop) for the full experience.</p>
       </div>
     );
   }
