@@ -5,7 +5,7 @@ import { RoadmapPath } from './RoadmapPath';
 import { Milestone } from './Milestone';
 import { TaskDots } from './TaskDots';
 import { Vehicle } from './Vehicle';
-import { roadmapCurvePoints } from '@/app/data/roadmapData';
+import { roadmapCurvePoints } from '@/app/utils/roadmapCurvePoints';
 import { Milestone as MilestoneType, TaskDot, PhaseData } from '@/app/types/roadmap';
 
 interface RoadmapSVGProps {

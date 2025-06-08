@@ -26,8 +26,8 @@ Before you begin, make sure you have:
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd roadmap
+   git clone https://github.com/oseiyoke/roadmaps
+   cd roadmaps
    ```
 
 2. **Install dependencies**
@@ -203,3 +203,22 @@ This project is licensed under the MIT License.
 - Powered by the [Notion API](https://developers.notion.com)
 - Icons by [Heroicons](https://heroicons.com)
 - Fonts by [Vercel](https://vercel.com/font)
+
+## Supabase Integration
+
+This app uses Supabase for persistent storage of roadmaps. To enable it:
+
+1. Create a new Supabase project at https://app.supabase.com.
+2. Create a `.env.local` file in the project root with the following environment variables:
+
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+3. The Supabase client and database operations are implemented in `lib/supabase.ts`. Key functions include:
+   - `createRoadmap`
+   - `getRoadmapById`
+   - `getRoadmapByShareId`
+   - `updateRoadmap`
+   - `getUserRoadmaps`
