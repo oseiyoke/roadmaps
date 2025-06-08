@@ -33,6 +33,7 @@ export default function SharedRoadmapPage() {
   const [roadmapConfig, setRoadmapConfig] = useState<RoadmapConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMobileView, setIsMobileView] = useState(false);
 
   useEffect(() => {
     const loadSharedRoadmap = async () => {
@@ -79,6 +80,13 @@ export default function SharedRoadmapPage() {
     loadSharedRoadmap();
   }, [params.shareId]);
 
+  useEffect(() => {
+    const checkMobile = () => setIsMobileView(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -105,6 +113,15 @@ export default function SharedRoadmapPage() {
             Go to Home
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (isMobileView) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center">
+        <h2 className="text-2xl font-semibold mb-4">Mobile view not available</h2>
+        <p className="text-gray-700 mb-6">Please view this roadmap on the web (desktop) for the full experience.</p>
       </div>
     );
   }
