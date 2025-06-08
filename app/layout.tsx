@@ -17,10 +17,20 @@ export const metadata: Metadata = {
   description: "Connect your Notion databases and watch your project roadmaps come to life with interactive, real-time visualizations that keep everyone aligned.",
   keywords: "roadmap, visualization, notion, project management, timeline, milestone tracker",
   authors: [{ name: "Roadmap Visualizer Team" }],
+  icons: {
+    icon: "/favicon.ico",
+  },
   openGraph: {
     title: "Roadmap Visualizer",
     description: "Transform your Notion roadmaps into beautiful visualizations",
     type: "website",
+    images: [
+      {
+        url: "/favicon.ico",
+        width: 1200,
+        height: 630,
+      },
+    ],
   },
 };
 
