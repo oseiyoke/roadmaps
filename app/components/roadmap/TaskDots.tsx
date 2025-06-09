@@ -24,12 +24,12 @@ export const TaskDots: React.FC<TaskDotsProps> = ({ taskDots, onTaskHover, onTas
   return (
     <>
       {taskDots.map((dot, index) => (
-        <circle
+        <use
           key={index}
-          cx={dot.x}
-          cy={dot.y}
-          r="6"
-          className={`${getStatusClass(dot.status)} transition-all duration-200 cursor-pointer hover:stroke-2 hover:stroke-white hover:drop-shadow-lg`}
+          href="#task-dot-base"
+          x={dot.x}
+          y={dot.y}
+          className={`${getStatusClass(dot.status)} transition-all duration-200 cursor-pointer hover:stroke-2 hover:stroke-white`}
           onMouseEnter={(e) => onTaskHover?.(e, dot, index)}
           onMouseLeave={onTaskLeave}
         />

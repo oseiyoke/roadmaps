@@ -5,6 +5,7 @@ import { RoadmapPath } from './RoadmapPath';
 import { Milestone } from './Milestone';
 import { TaskDots } from './TaskDots';
 import { Vehicle } from './Vehicle';
+import { SVGOptimizedDefs } from './SVGOptimizedDefs';
 import { roadmapCurvePoints } from '@/app/utils/roadmapCurvePoints';
 import { Milestone as MilestoneType, TaskDot, PhaseData } from '@/app/types/roadmap';
 
@@ -61,6 +62,9 @@ export const RoadmapSVG: React.FC<RoadmapSVGProps> = ({
         transform: `translateY(-50%) scale(${zoom})`
       }}
     >
+      {/* Include optimized definitions */}
+      <SVGOptimizedDefs />
+      
       <RoadmapPath ref={pathRef} points={roadmapCurvePoints} />
       
       {/* Milestones */}
@@ -92,14 +96,26 @@ export const RoadmapSVG: React.FC<RoadmapSVGProps> = ({
         <Vehicle x={currentDot.x} y={currentDot.y} />
       )}
       
-      {/* Launch (dynamic) */}
+      {/* Launch marker - simplified */}
       <g>
+        {/* Shadow */}
+        <ellipse
+          cx={launchPosition.x}
+          cy={launchPosition.y + 2}
+          rx="27"
+          ry="4"
+          fill="url(#shadow-gradient)"
+          opacity="0.3"
+        />
+        {/* Outer glow using gradient instead of multiple circles */}
         <circle
           cx={launchPosition.x}
           cy={launchPosition.y}
-          r="35"
-          className="fill-blue-500 opacity-20"
+          r="30"
+          fill="url(#glow-gradient)"
+          opacity="0.3"
         />
+        {/* Main circle */}
         <circle
           cx={launchPosition.x}
           cy={launchPosition.y}
@@ -112,7 +128,7 @@ export const RoadmapSVG: React.FC<RoadmapSVGProps> = ({
           className="fill-white text-sm font-bold"
           textAnchor="middle"
         >
-          
+          🚀
         </text>
       </g>
     </svg>

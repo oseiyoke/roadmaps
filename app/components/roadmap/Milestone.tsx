@@ -37,7 +37,7 @@ export const Milestone: React.FC<MilestoneProps> = ({
 
   const radius = 25;
 
-  // Notion Icon Component
+  // Optimized Icon Component using <image> instead of foreignObject
   const NotionIconComponent = () => {
     if (!milestone.icon) return null;
 
@@ -62,28 +62,23 @@ export const Milestone: React.FC<MilestoneProps> = ({
     if ((milestone.icon.type === 'external' || milestone.icon.type === 'file') && 
         (milestone.icon.external?.url || milestone.icon.file?.url)) {
       const imageUrl = milestone.icon.external?.url || milestone.icon.file?.url;
+      
+      // Use <image> instead of foreignObject for better Safari compatibility
       return (
-        <foreignObject
+        <image
           x={iconX}
           y={iconY}
           width={iconSize}
           height={iconSize}
+          href={imageUrl}
           className="pointer-events-none"
-        >
-          <img
-            src={imageUrl}
-            alt="Phase icon"
-            className="w-full h-full object-contain rounded"
-            style={{ filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))' }}
-          />
-        </foreignObject>
+          preserveAspectRatio="xMidYMid meet"
+        />
       );
     }
 
     return null;
   };
-
-
 
   return (
     <g 
@@ -92,22 +87,32 @@ export const Milestone: React.FC<MilestoneProps> = ({
       onMouseEnter={(e) => onMouseEnter(e, milestone.phase)}
       onMouseLeave={onMouseLeave}
     >
-      {/* Main milestone circle for all phases */}
-      <circle 
-        cx={milestone.x} 
-        cy={milestone.y} 
-        r={radius}
-        className={`${getStatusClasses()} stroke-[3] hover:filter hover:drop-shadow-lg`}
+      {/* Subtle shadow using gradient instead of filter */}
+      <ellipse
+        cx={milestone.x}
+        cy={milestone.y + 2}
+        rx={radius + 2}
+        ry={4}
+        fill="url(#shadow-gradient)"
+        opacity="0.3"
+      />
+      
+      {/* Main milestone circle using reusable shape */}
+      <use
+        href="#milestone-base"
+        x={milestone.x}
+        y={milestone.y}
+        className={`${getStatusClasses()} stroke-[3]`}
       />
       
       {/* Notion Icon overlay for all phases */}
       <NotionIconComponent />
       
-      {/* Date range */}
+      {/* Date range - hidden by default to reduce clutter */}
       <text 
         x={milestone.x} 
         y={milestone.y + (milestone.y < 300 ? -45 : 45)} 
-        className=" hidden fill-gray-500 text-xs pointer-events-none"
+        className="hidden fill-gray-500 text-xs pointer-events-none"
         textAnchor="middle"
       >
         {dateRange}

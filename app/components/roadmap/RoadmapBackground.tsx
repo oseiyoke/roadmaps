@@ -11,44 +11,25 @@ interface RoadmapBackgroundProps {
 export const RoadmapBackground: React.FC<RoadmapBackgroundProps> = ({ width, height }) => {
   return (
     <>
-      {/* Enhanced Background effects with animations */}
+      {/* Simplified background animations for better Safari performance */}
       <style jsx global>{`
-        @keyframes shimmer {
-          0% { background-position: -1000px 0; }
-          100% { background-position: 1000px 0; }
-        }
         @keyframes gradientShift {
           0%, 100% { 
-            background: linear-gradient(45deg, rgba(59, 130, 246, 0.3), rgba(34, 197, 94, 0.2), rgba(251, 191, 36, 0.1));
+            background-position: 0% 50%;
           }
-          33% { 
-            background: linear-gradient(45deg, rgba(34, 197, 94, 0.3), rgba(251, 191, 36, 0.2), rgba(239, 68, 68, 0.1));
+          50% { 
+            background-position: 100% 50%;
           }
-          66% { 
-            background: linear-gradient(45deg, rgba(251, 191, 36, 0.3), rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.1));
-          }
-        }
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.1; }
-          50% { opacity: 0.8; }
         }
         .terrain-bg {
-          animation: gradientShift 20s ease-in-out infinite;
-        }
-        .pattern-bg::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 200%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
-          animation: shimmer 8s ease-in-out infinite;
+          background: linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(34, 197, 94, 0.1));
+          animation: gradientShift 30s ease-in-out infinite;
+          background-size: 200% 200%;
         }
       `}</style>
       
       <div 
-        className="absolute inset-0 z-0 pointer-events-none"
+        className="absolute inset-0 z-0 pointer-events-none terrain-bg"
         style={{ 
           width: `${width}px`,
           minWidth: `${width}px`,

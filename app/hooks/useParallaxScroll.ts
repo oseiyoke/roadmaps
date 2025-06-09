@@ -1,85 +1,84 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface UseParallaxScrollParams {
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export const useParallaxScroll = ({ containerRef }: UseParallaxScrollParams) => {
+  const rafRef = useRef<number>(0);
+  const lastScrollRef = useRef<number>(0);
+  
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const handleScroll = () => {
+    let ticking = false;
+    
+    const updateParallax = () => {
       const scrollLeft = container.scrollLeft;
-      const scrollProgress = scrollLeft / (container.scrollWidth - container.clientWidth);
+      
+      // Only update if scroll position changed significantly (reduces Safari repaints)
+      if (Math.abs(scrollLeft - lastScrollRef.current) < 2) {
+        ticking = false;
+        return;
+      }
+      
+      lastScrollRef.current = scrollLeft;
       
       // Get landscape layer elements
-      const landscapeVeryFar = document.querySelector('.landscape-layer-very-far') as HTMLElement;
-      const landscapeFar = document.querySelector('.landscape-layer-far') as HTMLElement;
-      const landscapeMid = document.querySelector('.landscape-layer-mid') as HTMLElement;
-      const landscapeMidNear = document.querySelector('.landscape-layer-mid-near') as HTMLElement;
-      const landscapeNear = document.querySelector('.landscape-layer-near') as HTMLElement;
-      const landscapeVeryNear = document.querySelector('.landscape-layer-very-near') as HTMLElement;
-      const cloudsFar = document.querySelector('.clouds-far') as HTMLElement;
-      const cloudsMid = document.querySelector('.clouds-mid') as HTMLElement;
-      const cloudsNear = document.querySelector('.clouds-near') as HTMLElement;
+      const layers = {
+        veryFar: document.querySelector('.landscape-layer-very-far') as HTMLElement,
+        far: document.querySelector('.landscape-layer-far') as HTMLElement,
+        mid: document.querySelector('.landscape-layer-mid') as HTMLElement,
+        midNear: document.querySelector('.landscape-layer-mid-near') as HTMLElement,
+        near: document.querySelector('.landscape-layer-near') as HTMLElement,
+        veryNear: document.querySelector('.landscape-layer-very-near') as HTMLElement,
+        cloudsFar: document.querySelector('.clouds-far') as HTMLElement,
+        cloudsMid: document.querySelector('.clouds-mid') as HTMLElement,
+        cloudsNear: document.querySelector('.clouds-near') as HTMLElement,
+      };
       
-      // Apply parallax effect to landscape layers with different speeds
-      // Slower movement for far layers, faster for near layers to create depth
-      const time = Date.now() * 0.0001;
+      // Use transform3d for GPU acceleration and batch updates
+      const transforms: { element: HTMLElement | null; transform: string }[] = [
+        { element: layers.veryFar, transform: `translate3d(${-scrollLeft * 0.01}px, 0, 0)` },
+        { element: layers.far, transform: `translate3d(${-scrollLeft * 0.03}px, 0, 0)` },
+        { element: layers.mid, transform: `translate3d(${-scrollLeft * 0.08}px, 0, 0)` },
+        { element: layers.midNear, transform: `translate3d(${-scrollLeft * 0.12}px, 0, 0)` },
+        { element: layers.near, transform: `translate3d(${-scrollLeft * 0.18}px, 0, 0)` },
+        { element: layers.veryNear, transform: `translate3d(${-scrollLeft * 0.25}px, 0, 0)` },
+        // Simplified cloud movement without time-based animation
+        { element: layers.cloudsFar, transform: `translate3d(${-scrollLeft * 0.01}px, 0, 0)` },
+        { element: layers.cloudsMid, transform: `translate3d(${-scrollLeft * 0.03}px, 0, 0)` },
+        { element: layers.cloudsNear, transform: `translate3d(${-scrollLeft * 0.06}px, 0, 0)` },
+      ];
       
-      // Landscape layers with progressive speeds
-      if (landscapeVeryFar) {
-        landscapeVeryFar.style.transform = `translateX(${-scrollLeft * 0.01}px) translateY(${Math.sin(scrollProgress * Math.PI * 0.3) * 10}px)`;
-      }
+      // Apply all transforms in a single batch
+      transforms.forEach(({ element, transform }) => {
+        if (element) {
+          element.style.transform = transform;
+          element.style.willChange = 'transform';
+        }
+      });
       
-      if (landscapeFar) {
-        landscapeFar.style.transform = `translateX(${-scrollLeft * 0.03}px) translateY(${Math.sin(scrollProgress * Math.PI * 0.7) * 7}px)`;
-      }
-      
-      if (landscapeMid) {
-        landscapeMid.style.transform = `translateX(${-scrollLeft * 0.08}px) translateY(${Math.sin(scrollProgress * Math.PI * 1.2) * 4}px)`;
-      }
-      
-      if (landscapeMidNear) {
-        landscapeMidNear.style.transform = `translateX(${-scrollLeft * 0.12}px) translateY(${Math.sin(scrollProgress * Math.PI * 1.7) * 3}px)`;
-      }
-      
-      if (landscapeNear) {
-        landscapeNear.style.transform = `translateX(${-scrollLeft * 0.18}px) translateY(${Math.sin(scrollProgress * Math.PI * 2.2) * 2}px)`;
-      }
-      
-      if (landscapeVeryNear) {
-        landscapeVeryNear.style.transform = `translateX(${-scrollLeft * 0.25}px) translateY(${Math.sin(scrollProgress * Math.PI * 2.8) * 1}px)`;
-      }
-      
-      // Cloud layers with enhanced movement and gentle auto-drift
-      if (cloudsFar) {
-        cloudsFar.style.transform = `translateX(${-scrollLeft * 0.01 - time * 5}px) translateY(${Math.sin(time * 0.3) * 4}px)`;
-      }
-      
-      if (cloudsMid) {
-        cloudsMid.style.transform = `translateX(${-scrollLeft * 0.03 - time * 8}px) translateY(${Math.sin(time * 0.5) * 3}px)`;
-      }
-      
-      if (cloudsNear) {
-        cloudsNear.style.transform = `translateX(${-scrollLeft * 0.06 - time * 12}px) translateY(${Math.sin(time * 0.7) * 2}px)`;
+      ticking = false;
+    };
+    
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        rafRef.current = requestAnimationFrame(updateParallax);
       }
     };
 
-    // Animate clouds continuously
-    const animationFrame = () => {
-      handleScroll();
-      requestAnimationFrame(animationFrame);
-    };
-    requestAnimationFrame(animationFrame);
-
-    container.addEventListener('scroll', handleScroll);
+    container.addEventListener('scroll', handleScroll, { passive: true });
     
     return () => {
       container.removeEventListener('scroll', handleScroll);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     };
   }, [containerRef]);
 }; 

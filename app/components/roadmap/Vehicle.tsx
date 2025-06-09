@@ -10,67 +10,33 @@ interface VehicleProps {
 export const Vehicle: React.FC<VehicleProps> = ({ x, y }) => {
   return (
     <>
-      {/* Vehicle animations */}
+      {/* Simplified vehicle animations */}
       <style jsx global>{`
         @keyframes vehicleBob {
           0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-3px); }
-        }
-        @keyframes wheelSpin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        @keyframes exhaustPuff {
-          0% { opacity: 0.8; transform: scale(0.5) translateX(0px); }
-          100% { opacity: 0; transform: scale(1.5) translateX(-15px); }
+          50% { transform: translateY(-2px); }
         }
         .vehicle-bob {
           animation: vehicleBob 2s ease-in-out infinite;
         }
-        .wheel-spin {
-          animation: wheelSpin 1s linear infinite;
-        }
-        .exhaust-puff {
-          animation: exhaustPuff 1.5s ease-out infinite;
-        }
-        .exhaust-puff:nth-child(2) {
-          animation-delay: 0.5s;
-        }
-        .exhaust-puff:nth-child(3) {
-          animation-delay: 1s;
-        }
       `}</style>
       
       <g className="vehicle-marker">
-        {/* Vehicle shadow */}
+        {/* Vehicle shadow using gradient */}
         <ellipse 
           cx={x} 
           cy={y + 12} 
           rx="18" 
           ry="4" 
-          className="fill-black opacity-20"
+          fill="url(#shadow-gradient)"
+          opacity="0.3"
         />
         
-        {/* Exhaust puffs */}
-        <g className="exhaust-effects">
-          <circle 
-            cx={x - 25} 
-            cy={y + 2} 
-            r="3" 
-            className="fill-gray-400 opacity-60 exhaust-puff"
-          />
-          <circle 
-            cx={x - 22} 
-            cy={y + 1} 
-            r="2" 
-            className="fill-gray-300 opacity-50 exhaust-puff"
-          />
-          <circle 
-            cx={x - 28} 
-            cy={y + 3} 
-            r="2.5" 
-            className="fill-gray-500 opacity-40 exhaust-puff"
-          />
+        {/* Simplified exhaust puffs - static instead of animated */}
+        <g className="exhaust-effects" opacity="0.4">
+          <circle cx={x - 25} cy={y + 2} r="3" className="fill-gray-400" />
+          <circle cx={x - 22} cy={y + 1} r="2" className="fill-gray-300" opacity="0.7" />
+          <circle cx={x - 28} cy={y + 3} r="2.5" className="fill-gray-500" opacity="0.5" />
         </g>
         
         {/* Main vehicle body with bounce animation */}
@@ -139,50 +105,18 @@ export const Vehicle: React.FC<VehicleProps> = ({ x, y }) => {
           />
         </g>
         
-        {/* Wheels (spinning) */}
-        <g className="wheel-spin" style={{ transformOrigin: `${x - 10}px ${y + 6}px` }}>
-          <circle
-            cx={x - 10}
-            cy={y + 6}
-            r="4"
-            className="fill-gray-800 stroke-gray-900 stroke-1"
-          />
-          <circle
-            cx={x - 10}
-            cy={y + 6}
-            r="2"
-            className="fill-gray-600"
-          />
-          <rect
-            x={x - 11}
-            y={y + 4}
-            width="2"
-            height="4"
-            className="fill-gray-400"
-          />
-        </g>
+        {/* Wheels using reusable shapes */}
+        <use
+          href="#vehicle-wheel"
+          x={x - 10}
+          y={y + 6}
+        />
         
-        <g className="wheel-spin" style={{ transformOrigin: `${x + 10}px ${y + 6}px` }}>
-          <circle
-            cx={x + 10}
-            cy={y + 6}
-            r="4"
-            className="fill-gray-800 stroke-gray-900 stroke-1"
-          />
-          <circle
-            cx={x + 10}
-            cy={y + 6}
-            r="2"
-            className="fill-gray-600"
-          />
-          <rect
-            x={x + 9}
-            y={y + 4}
-            width="2"
-            height="4"
-            className="fill-gray-400"
-          />
-        </g>
+        <use
+          href="#vehicle-wheel"
+          x={x + 10}
+          y={y + 6}
+        />
       </g>
     </>
   );
