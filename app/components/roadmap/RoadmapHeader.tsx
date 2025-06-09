@@ -63,7 +63,7 @@ export const RoadmapHeader: React.FC<RoadmapHeaderProps> = ({ onRefresh }) => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-30 bg-gradient-to-b from-white/90 to-white/60 backdrop-blur-sm">
+      <header className="fixed top-0 left-0 right-0 z-30 bg-gradient-to-b backdrop-blur-sm">
         <div className="px-6 py-2.5">
           <div className="flex items-center justify-between">
             {/* Left side - Back button */}

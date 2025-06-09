@@ -40,7 +40,7 @@ export const useTooltipHandlers = (): TooltipHandlers => {
         title: `Phase ${phase}: ${data.title}`,
         tagline: `${data.tagline} • ${statusText} • ${taskProgress}`,
         position: {
-          x: rect.left + rect.width / 2,
+          x: rect.left + rect.width * 1.5,
           y: rect.bottom + 10
         }
       });

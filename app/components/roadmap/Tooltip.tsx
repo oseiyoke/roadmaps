@@ -16,7 +16,7 @@ export const Tooltip: React.FC<TooltipProps> = ({ show, title, tagline, position
     <div 
       className={`
         absolute bg-white border border-gray-200 rounded-lg p-3 shadow-lg
-        pointer-events-none z-50 transition-all duration-200
+        pointer-events-none z-50 transition-all duration-200 w-1/6
         ${show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
       `}
       style={{
