@@ -19,4 +19,5 @@ export const roadmapCurvePoints: { x: number; y: number }[] = [
   { x: 3200, y: 350 },    // Straighten out
   { x: 3400, y: 300 },    // Final approach
   { x: 3600, y: 350 },    // End position
+  { x: 3750, y: 350 },    // Extended end for launch area
 ]; 

@@ -4,4 +4,10 @@ export {
   calculateProgress,
   type PositionCalculationParams,
   type PositionCalculationResult
-} from './roadmapPositions'; 
+} from './roadmapPositions';
+
+// Canvas rendering utilities
+export { renderRoadCanvas, createRoadCanvas } from './renderRoadCanvas';
+
+// Feature detection utilities
+export { getOptimalRenderingConfig, supportsCanvasOptimizations, supportsAdvancedFilters } from './featureDetection'; 

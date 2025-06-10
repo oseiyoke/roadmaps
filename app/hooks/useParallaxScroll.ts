@@ -4,13 +4,17 @@ import { useEffect, useRef } from 'react';
 
 interface UseParallaxScrollParams {
   containerRef: React.RefObject<HTMLDivElement | null>;
+  enabled?: boolean;
 }
 
-export const useParallaxScroll = ({ containerRef }: UseParallaxScrollParams) => {
+export const useParallaxScroll = ({ containerRef, enabled = true }: UseParallaxScrollParams) => {
   const rafRef = useRef<number>(0);
   const lastScrollRef = useRef<number>(0);
   
   useEffect(() => {
+    // Early return if disabled
+    if (!enabled) return;
+    
     const container = containerRef.current;
     if (!container) return;
 
@@ -80,5 +84,5 @@ export const useParallaxScroll = ({ containerRef }: UseParallaxScrollParams) => 
         cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [containerRef]);
+  }, [containerRef, enabled]);
 }; 

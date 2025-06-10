@@ -29,12 +29,14 @@ export const RoadmapBackground: React.FC<RoadmapBackgroundProps> = ({ width, hei
       `}</style>
       
       <div 
-        className="absolute inset-0 z-0 pointer-events-none terrain-bg"
+        className="absolute z-0 pointer-events-none terrain-bg"
         style={{ 
           width: `${width}px`,
           minWidth: `${width}px`,
           height: `calc(100vh - 80px)`,
-          top: '0'
+          top: '0',
+          left: '-64px', // Offset to account for parent padding
+          right: '-64px'
         }}
       >
         <LandscapeBackground width={width} height={height} />

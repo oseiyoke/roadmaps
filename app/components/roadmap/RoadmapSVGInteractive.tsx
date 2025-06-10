@@ -1,16 +1,13 @@
 'use client';
 
 import React from 'react';
-import { RoadmapPath } from './RoadmapPath';
 import { Milestone } from './Milestone';
 import { TaskDots } from './TaskDots';
 import { Vehicle } from './Vehicle';
 import { SVGOptimizedDefs } from './SVGOptimizedDefs';
-import { roadmapCurvePoints } from '@/app/utils/roadmapCurvePoints';
 import { Milestone as MilestoneType, TaskDot, PhaseData } from '@/app/types/roadmap';
 
-interface RoadmapSVGProps {
-  pathRef: React.RefObject<SVGPathElement | null>;
+interface RoadmapSVGInteractiveProps {
   svgRef: React.RefObject<SVGSVGElement | null>;
   zoom: number;
   milestonePositions: MilestoneType[];
@@ -23,10 +20,10 @@ interface RoadmapSVGProps {
   onMilestoneLeave: () => void;
   onTaskHover: (e: React.MouseEvent, task: TaskDot, index: number) => void;
   onTaskLeave: () => void;
+  width?: number;
 }
 
-export const RoadmapSVG: React.FC<RoadmapSVGProps> = ({
-  pathRef,
+export const RoadmapSVGInteractive: React.FC<RoadmapSVGInteractiveProps> = ({
   svgRef,
   zoom,
   milestonePositions,
@@ -38,7 +35,8 @@ export const RoadmapSVG: React.FC<RoadmapSVGProps> = ({
   onMilestoneHover,
   onMilestoneLeave,
   onTaskHover,
-  onTaskLeave
+  onTaskLeave,
+  width = 3600
 }) => {
   const formatDateRange = (startDate: string, endDate: string): string => {
     const start = startDate.split(' ');
@@ -49,49 +47,52 @@ export const RoadmapSVG: React.FC<RoadmapSVGProps> = ({
   return (
     <svg 
       ref={svgRef}
-      className="roadmap-svg" 
-      width="3800" 
+      className="roadmap-svg-interactive absolute inset-0" 
+      width={width} 
       height="700" 
-      viewBox="0 0 3800 700"
+      viewBox={`0 0 ${width} 700`}
       style={{ 
         transformOrigin: 'left center',
         display: 'block',
         position: 'absolute',
         top: '50%',
         left: 0,
-        transform: `translateY(-50%) scale(${zoom})`
+        transform: `translateY(-50%) scale(${zoom})`,
+        pointerEvents: 'none' // Disable on svg, enable on individual elements
       }}
     >
       {/* Include optimized definitions */}
       <SVGOptimizedDefs />
       
-      <RoadmapPath ref={pathRef} points={roadmapCurvePoints} />
+      {/* Milestones - enable pointer events */}
+      <g style={{ pointerEvents: 'auto' }}>
+        {milestonePositions.map(milestone => (
+          <Milestone
+            key={milestone.id}
+            milestone={milestone}
+            dateRange={phaseData[milestone.phase] ? 
+              formatDateRange(
+                phaseData[milestone.phase].startDate,
+                phaseData[milestone.phase].endDate
+              ) : ''
+            }
+            onClick={onMilestoneClick}
+            onMouseEnter={onMilestoneHover}
+            onMouseLeave={onMilestoneLeave}
+          />
+        ))}
+      </g>
       
-      {/* Milestones */}
-      {milestonePositions.map(milestone => (
-        <Milestone
-          key={milestone.id}
-          milestone={milestone}
-          dateRange={phaseData[milestone.phase] ? 
-            formatDateRange(
-              phaseData[milestone.phase].startDate,
-              phaseData[milestone.phase].endDate
-            ) : ''
-          }
-          onClick={onMilestoneClick}
-          onMouseEnter={onMilestoneHover}
-          onMouseLeave={onMilestoneLeave}
+      {/* Task dots - enable pointer events */}
+      <g style={{ pointerEvents: 'auto' }}>
+        <TaskDots 
+          taskDots={taskDotPositions} 
+          onTaskHover={onTaskHover}
+          onTaskLeave={onTaskLeave}
         />
-      ))}
+      </g>
       
-      {/* Task dots rendered after milestones so they appear on top */}
-      <TaskDots 
-        taskDots={taskDotPositions} 
-        onTaskHover={onTaskHover}
-        onTaskLeave={onTaskLeave}
-      />
-      
-      {/* Vehicle Position (last in-progress task) */}
+      {/* Vehicle Position (non-interactive) */}
       {currentDot && (
         <Vehicle x={currentDot.x} y={currentDot.y} />
       )}
