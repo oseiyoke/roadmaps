@@ -3,10 +3,11 @@
 import React from 'react';
 import {
   ClipboardDocumentListIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline';
 
-type TabType = 'content' | 'tasks';
+type TabType = 'content' | 'tasks' | 'timeline';
 
 interface TabNavigationProps {
   activeTab: TabType;
@@ -61,6 +62,21 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
             `}>
               {completedCount}/{totalTasks}
             </span>
+          </div>
+        </button>
+        <button
+          onClick={() => onTabChange('timeline')}
+          className={`
+            flex-1 px-6 py-4 text-sm font-medium transition-all duration-200
+            ${activeTab === 'timeline' 
+              ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' 
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }
+          `}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <ClockIcon className="w-5 h-5" />
+            Timeline
           </div>
         </button>
       </div>

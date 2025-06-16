@@ -69,7 +69,8 @@ interface NotionTask {
   properties: {
     'Task name'?: { title: Array<{ plain_text: string }> };
     Status?: { status?: { name: string } };
-    Due?: { date?: { start: string } };
+    Due?: { date?: { start: string; end?: string } };
+    'Start Date'?: { date?: { start: string } };
     Tags?: { multi_select?: Array<{ name: string }> };
     Project?: { relation?: Array<{ id: string }> };
   };
@@ -96,7 +97,8 @@ export interface Task {
   id: string;
   name: string;
   status: string;
-  dueDate: string;
+  startDate: string;
+  endDate: string;
   tags: string[];
   projectIds: string[];
 }
@@ -402,11 +404,16 @@ export async function fetchAllTasks(config: NotionConfig): Promise<Task[]> {
       // Extract project relation IDs
       const projectIds = properties.Project?.relation?.map(rel => rel.id).filter(Boolean) || [];
 
+      // Get start and end dates - prioritize dedicated Start Date field, fallback to Due date
+      const startDate = properties['Start Date']?.date?.start || properties.Due?.date?.start || '';
+      const endDate = properties.Due?.date?.end || properties.Due?.date?.start || '';
+
       return {
         id: notionTask.id,
         name: extractPlainText(properties['Task name']?.title),
         status: NOTION_TO_STATUS[properties.Status?.status?.name as keyof typeof NOTION_TO_STATUS] || 'pending',
-        dueDate: properties.Due?.date?.start || '',
+        startDate,
+        endDate,
         tags: properties.Tags?.multi_select?.map((tag) => tag.name) || [],
         projectIds,
       };
@@ -466,7 +473,8 @@ export function filterTasksByPhase(
       id: task.id,
       name: task.name,
       status: task.status,
-      dueDate: task.dueDate,
+      startDate: task.startDate,
+      endDate: task.endDate,
       tags: task.tags,
     }));
 }

@@ -10,4 +10,5 @@ export { SVGOptimizedDefs } from './SVGOptimizedDefs';
 export { LoadingState } from './LoadingState';
 export { ErrorState } from './ErrorState';
 export { useRoadmapConfig } from './RoadmapViewer';
-export { TaskList } from './TaskList'; 
+export { TaskList } from './TaskList';
+export { TaskTimeline } from './TaskTimeline'; 

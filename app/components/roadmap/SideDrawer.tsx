@@ -6,6 +6,7 @@ import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { PhaseHeader } from './PhaseHeader';
 import { TabNavigation } from './TabNavigation';
 import { TaskList } from './TaskList';
+import { TaskTimeline } from './TaskTimeline';
 import { ContentBlockRenderer } from './content-blocks';
 
 interface SideDrawerProps {
@@ -22,7 +23,7 @@ interface EditingState {
   value: string;
 }
 
-type TabType = 'content' | 'tasks';
+type TabType = 'content' | 'tasks' | 'timeline';
 
 export const SideDrawer: React.FC<SideDrawerProps> = ({ 
   isOpen, 
@@ -33,7 +34,7 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
 }) => {
   const [editing, setEditing] = useState<EditingState>({ type: null, id: null, value: '' });
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabType>('content');
+  const [activeTab, setActiveTab] = useState<TabType>('timeline');
 
   // Debug logging
   useEffect(() => {
@@ -140,9 +141,12 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                   </div>
                 )}
               </div>
-            ) : (
+            ) : activeTab === 'tasks' ? (
               /* Tasks Tab */
               <TaskList phaseData={phaseData} />
+            ) : (
+              /* Timeline Tab */
+              <TaskTimeline phaseData={phaseData} />
             )}
           </div>
         </div>

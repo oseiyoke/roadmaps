@@ -3,12 +3,43 @@
 import React from 'react';
 import { PhaseData } from '@/app/types/roadmap';
 import { CheckCircleIcon as CheckCircleSolid } from '@heroicons/react/24/solid';
+import { CalendarDaysIcon } from '@heroicons/react/24/outline';
 
 interface TaskListProps {
   phaseData: PhaseData;
 }
 
 export const TaskList: React.FC<TaskListProps> = ({ phaseData }) => {
+  
+  // Utility function to format dates
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return null;
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Utility function to get date range display
+  const getDateRange = (startDate?: string, endDate?: string) => {
+    const start = formatDate(startDate);
+    const end = formatDate(endDate);
+    
+    if (start && end) {
+      return `${start} - ${end}`;
+    } else if (start) {
+      return `Started ${start}`;
+    } else if (end) {
+      return `Due ${end}`;
+    }
+    return null;
+  };
   
   const getTaskStatusIcon = (status: string) => {
     switch (status) {
@@ -59,15 +90,25 @@ export const TaskList: React.FC<TaskListProps> = ({ phaseData }) => {
                 {getTaskStatusIcon(task.status)}
               </div>
               
-              {/* Task Name - Read Only */}
-              <span 
-                className={`
-                  flex-1 text-slate-900 leading-relaxed
-                  ${task.status === 'completed' ? 'line-through opacity-75' : ''}
-                `}
-              >
-                {task.name}
-              </span>
+              {/* Task Content - Read Only */}
+              <div className="flex-1">
+                <span 
+                  className={`
+                    block text-slate-900 leading-relaxed mb-1
+                    ${task.status === 'completed' ? 'line-through opacity-75' : ''}
+                  `}
+                >
+                  {task.name}
+                </span>
+                
+                {/* Date Range */}
+                {getDateRange(task.startDate, task.endDate) && (
+                  <div className="flex items-center gap-1 text-xs text-slate-500">
+                    <CalendarDaysIcon className="w-3 h-3" />
+                    <span>{getDateRange(task.startDate, task.endDate)}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ))}

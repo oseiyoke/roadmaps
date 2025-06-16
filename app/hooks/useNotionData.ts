@@ -31,7 +31,8 @@ interface NotionTask {
   id: string;
   name: string;
   status: string;
-  dueDate: string;
+  startDate: string;
+  endDate: string;
   tags: string[];
   projectIds: string[];
 }
@@ -105,7 +106,9 @@ export function useNotionData() {
           critical: phase.critical,
           tasks: phaseTasks.map(task => ({
             name: task.name,
-            status: task.status as 'completed' | 'in-progress' | 'pending'
+            status: task.status as 'completed' | 'in-progress' | 'pending',
+            startDate: task.startDate ? formatDate(task.startDate) : undefined,
+            endDate: task.endDate ? formatDate(task.endDate) : undefined
           })),
           content: phase.content || [],
           icon: phase.icon

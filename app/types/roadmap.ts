@@ -1,6 +1,8 @@
 export interface Task {
   name: string;
   status: 'completed' | 'in-progress' | 'pending';
+  startDate?: string;
+  endDate?: string;
 }
 
 // Flexible content block structure that mirrors Notion blocks
