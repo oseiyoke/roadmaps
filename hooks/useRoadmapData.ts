@@ -16,7 +16,8 @@ interface Task {
   id: string;
   name: string;
   status: string;
-  dueDate: string;
+  startDate: string;
+  endDate: string;
   tags: string[];
   projectIds: string[];
 }
@@ -25,7 +26,8 @@ interface SimpleTask {
   id: string;
   name: string;
   status: string;
-  dueDate: string;
+  startDate?: string;
+  endDate?: string;
   tags: string[];
 }
 
